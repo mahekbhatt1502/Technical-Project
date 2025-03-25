@@ -21,7 +21,7 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const menuItems = ['Mission HQ', 'Contact Ops', 'Gallery Vault'];
+  const menuItems = ['About Us', 'Contact', 'Reviews'];
 
   return (
     <nav style={{
@@ -197,7 +197,7 @@ const HeroSection = ({ currentSlide, slides }) => {
           e.target.style.transform = 'scale(1) translateY(0)';
         }}
       >
-        Execute the Heist!
+        EXPLORE CATEGORIES 
       </button>
       <div style={{
         marginTop: '30px',

@@ -224,7 +224,7 @@ const TShirt = () => {
               e.target.style.color = theme.midnightBlack;
             }}
           >
-            Back to HQ
+            Home 
           </button>
           <h1 style={{
             color: theme.silverLining,
