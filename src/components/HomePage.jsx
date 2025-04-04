@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import '../index.css';
 
 // Enhanced Deal Heist Theme Palette
 const theme = {
@@ -212,68 +213,67 @@ const HeroSection = ({ currentSlide, slides }) => {
   );
 };
 
-// Category Card: The Targets
-const CategoryCard = ({ title, imageUrl, position, isClicked }) => {
+// New CategoryCard Component: The Target Vault
+const CategoryCard = ({ title, imageUrl, position }) => {
   const [isVisible, setIsVisible] = useState(false);
+  const [isActive, setIsActive] = useState(false); // For click animation
   const cardRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.1 }
+      { threshold: 0.2 }
     );
     if (cardRef.current) observer.observe(cardRef.current);
     return () => observer.disconnect();
   }, []);
 
   const handleClick = () => {
-    const routeMap = {
-      'Shoes': '/category/shoes',
-      'Smartphone': '/category/smartphone',
-      'T-Shirt': '/category/t-shirt',
-      'Jeans': '/category/jeans',
-      'Watches': '/category/watches'
-    };
-    
-    const path = routeMap[title];
-    if (path) {
-      navigate(path);
-    }
+    setIsActive(true);
+    setTimeout(() => {
+      const routeMap = {
+        'Shoes': '/category/shoes',
+        'Smartphone': '/category/smartphone',
+        'T-Shirt': '/category/t-shirt',
+        'Jeans': '/category/jeans'
+      };
+      const path = routeMap[title];
+      if (path) navigate(path);
+      setIsActive(false);
+    }, 600); // Matches the lockBreak animation duration
   };
-
-  const yOffset = (position % 2 === 0 ? 20 : -20) + (isClicked ? 50 : 0);
 
   return (
     <div
       ref={cardRef}
       style={{
-        width: '180px',
-        height: '180px',
-        transform: `translateY(${yOffset}px) scale(${isVisible ? 1 : 0.9}) ${isClicked ? 'rotate(180deg)' : ''}`,
-        opacity: isVisible ? 1 : 0,
-        transition: 'all 0.8s cubic-bezier(0.25, 1, 0.5, 1)',
-        cursor: 'pointer',
+        width: '220px',
+        height: '220px',
         position: 'relative',
-        animation: isVisible ? 'targetPulse 3s infinite ease-in-out' : 'none',
+        opacity: isVisible ? 1 : 0,
+        transform: `translateY(${isVisible ? 0 : 20}px)`,
+        transition: 'opacity 0.5s ease-in-out, transform 0.5s ease-in-out',
+        cursor: 'pointer',
+        animation: isActive ? 'lockBreak 0.6s ease-in-out' : 'none',
       }}
       onClick={handleClick}
       onMouseEnter={(e) => {
         if (isVisible) {
-          e.target.style.transform = `translateY(${yOffset}px) scale(1.15) rotate(3deg)`;
-          e.target.querySelector('.target-core').style.boxShadow = `0 0 25px ${theme.heistRed}cc`;
-          e.target.querySelector('.title-text').style.textShadow = `0 0 15px ${theme.neonBlue}cc`;
-          e.target.querySelector('.splash-effect').style.opacity = '0.7';
-          e.target.querySelector('.splash-effect').style.transform = 'scale(1.5)';
+          e.target.querySelector('.vault-core').style.borderColor = theme.heistRed;
+          e.target.querySelector('.vault-core').style.boxShadow = `0 0 30px ${theme.heistRed}aa`;
+          e.target.querySelector('.vault-title').style.color = theme.neonBlue;
+          e.target.querySelector('.scan-ring').style.opacity = '1';
+          e.target.querySelector('.scan-ring').style.transform = 'scale(1.2)';
         }
       }}
       onMouseLeave={(e) => {
         if (isVisible) {
-          e.target.style.transform = `translateY(${yOffset}px) scale(1) rotate(0deg)`;
-          e.target.querySelector('.target-core').style.boxShadow = `0 0 15px ${theme.neonBlue}80`;
-          e.target.querySelector('.title-text').style.textShadow = `0 0 8px ${theme.silverLining}80`;
-          e.target.querySelector('.splash-effect').style.opacity = '0';
-          e.target.querySelector('.splash-effect').style.transform = 'scale(0)';
+          e.target.querySelector('.vault-core').style.borderColor = theme.neonBlue;
+          e.target.querySelector('.vault-core').style.boxShadow = `0 0 15px ${theme.neonBlue}80`;
+          e.target.querySelector('.vault-title').style.color = theme.silverLining;
+          e.target.querySelector('.scan-ring').style.opacity = '0';
+          e.target.querySelector('.scan-ring').style.transform = 'scale(1)';
         }
       }}
       role="button"
@@ -281,49 +281,51 @@ const CategoryCard = ({ title, imageUrl, position, isClicked }) => {
       aria-label={`View ${title} category`}
     >
       <div
-        className="target-core"
+        className="vault-core"
         style={{
           width: '100%',
           height: '100%',
           background: `url(${imageUrl}) center/cover`,
           borderRadius: '50%',
-          border: `2px solid ${theme.neonBlue}aa`,
+          border: `3px solid ${theme.neonBlue}`,
           boxShadow: `0 0 15px ${theme.neonBlue}80`,
           position: 'relative',
-          transition: 'box-shadow 0.8s ease-in-out',
+          overflow: 'hidden',
+          transition: 'border-color 0.5s ease-in-out, box-shadow 0.5s ease-in-out',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          overflow: 'hidden',
           backgroundBlendMode: 'overlay',
-          backgroundColor: 'rgba(44, 44, 44, 0.6)',
+          backgroundColor: 'rgba(44, 44, 44, 0.7)',
         }}
       >
+        {/* Scanning Ring */}
         <div
-          className="splash-effect"
+          className="scan-ring"
           style={{
             position: 'absolute',
             width: '100%',
             height: '100%',
-            background: `radial-gradient(circle, ${theme.neonBlue}40, transparent 70%)`,
             borderRadius: '50%',
+            border: `2px dashed ${theme.neonBlue}`,
             opacity: 0,
-            transform: 'scale(0)',
-            transition: 'opacity 0.4s ease-in-out, transform 0.4s ease-in-out',
-            zIndex: 0,
+            transform: 'scale(1)',
+            transition: 'opacity 0.5s ease-in-out, transform 0.5s ease-in-out',
+            animation: 'scanRotate 3s infinite linear',
           }}
         />
+        {/* Title */}
         <h3
-          className="title-text"
+          className="vault-title"
           style={{
             color: theme.silverLining,
-            fontSize: '20px',
+            fontSize: '22px',
             fontWeight: '700',
-            textShadow: `0 0 8px ${theme.silverLining}80`,
+            textShadow: `0 0 8px ${theme.neonBlue}80`,
             margin: 0,
-            padding: '0 10px',
+            padding: '0 15px',
             textAlign: 'center',
-            transition: 'text-shadow 0.8s ease-in-out',
+            transition: 'color 0.5s ease-in-out',
             zIndex: 1,
             wordBreak: 'break-word',
             maxWidth: '90%',
@@ -331,6 +333,17 @@ const CategoryCard = ({ title, imageUrl, position, isClicked }) => {
         >
           {title}
         </h3>
+        {/* Activation Overlay */}
+        <div
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            background: `radial-gradient(circle, ${theme.heistRed}20, transparent 70%)`,
+            opacity: isActive ? 0.8 : 0,
+            transition: 'opacity 0.3s ease-in-out',
+          }}
+        />
       </div>
     </div>
   );
@@ -406,25 +419,23 @@ const HomePage = () => {
     { title: 'Smartphone', imageUrl: 'https://via.placeholder.com/150?text=Smartphone' },
     { title: 'T-Shirt', imageUrl: 'https://via.placeholder.com/150?text=T-Shirt' },
     { title: 'Jeans', imageUrl: 'https://via.placeholder.com/150?text=Jeans' },
-    { title: 'Watches', imageUrl: 'https://via.placeholder.com/150?text=Watches' },
   ];
 
-  const [categories, setCategories] = useState(initialCategories);
+  const [categories] = useState(initialCategories);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [clickedTitle, setClickedTitle] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [progress, setProgress] = useState(0);
   const slides = [
     {
-      tagline: 'Bella Ciao to High Prices!',
+      tagline: 'Amazon vs Flipkart? We Decide!',
       background: `radial-gradient(${theme.midnightBlack}, ${theme.neonBlue}cc)`,
     },
     {
-      tagline: 'Compare like a Professor, Save like a Heist!',
+      tagline: 'Your Deal Detector',
       background: `radial-gradient(${theme.midnightBlack}, ${theme.heistRed}cc)`,
     },
     {
-      tagline: 'Smart Deals, No Masks Needed!',
+      tagline: 'Price Battle, You Win!',
       background: `radial-gradient(${theme.midnightBlack}, ${theme.silverLining}cc)`,
     },
   ];
@@ -434,12 +445,12 @@ const HomePage = () => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(loadTimer);
-          setTimeout(() => setIsLoading(false), 500); // Delay for final animation
+          setTimeout(() => setIsLoading(false), 500);
           return 100;
         }
-        return prev + 10; // Simulate loading progress
+        return prev + 10;
       });
-    }, 200); // Adjust timing for smoother/faster animation
+    }, 200);
     return () => clearInterval(loadTimer);
   }, []);
 
@@ -449,11 +460,6 @@ const HomePage = () => {
     }, 6000);
     return () => clearInterval(slideTimer);
   }, []);
-
-  const handleCategoryClick = (clickedTitle) => {
-    setClickedTitle(clickedTitle);
-    setTimeout(() => setClickedTitle(null), 800);
-  };
 
   if (isLoading) {
     return (
@@ -470,7 +476,6 @@ const HomePage = () => {
         zIndex: 2000,
         flexDirection: 'column',
       }}>
-        {/* Vault Door */}
         <div style={{
           width: '200px',
           height: '200px',
@@ -482,7 +487,6 @@ const HomePage = () => {
           overflow: 'hidden',
           animation: 'vaultPulse 2s infinite ease-in-out',
         }}>
-          {/* Tumbler Text */}
           <div style={{
             position: 'absolute',
             top: '50%',
@@ -498,8 +502,6 @@ const HomePage = () => {
             {progress < 100 ? 'CRACKING...' : 'ACCESS GRANTED'}
           </div>
         </div>
-
-        {/* Laser Progress Bar */}
         <div style={{
           width: '300px',
           height: '10px',
@@ -517,8 +519,6 @@ const HomePage = () => {
             boxShadow: `0 0 15px ${theme.neonBlue}80`,
           }} />
         </div>
-
-        {/* Skip Button */}
         <button
           onClick={() => setIsLoading(false)}
           style={{
@@ -559,6 +559,7 @@ const HomePage = () => {
       transition: 'background 1.5s ease-in-out',
     }}>
       <Navbar />
+      <div style={{ height: '20px' }} /> {/* Spacer */}
       <HeroSection currentSlide={currentSlide} slides={slides} />
       <div id="categories" style={{
         padding: '80px 5%',
@@ -566,7 +567,8 @@ const HomePage = () => {
         width: '100%',
         boxSizing: 'border-box',
         position: 'relative',
-        transition: 'all 0.8s ease-in-out',
+        background: `radial-gradient(circle at center, ${theme.stealthGray}20, ${theme.midnightBlack} 70%)`,
+        boxShadow: `inset 0 0 50px ${theme.shadow}`,
       }}>
         <h2 style={{
           color: theme.silverLining,
@@ -575,19 +577,19 @@ const HomePage = () => {
           fontWeight: '700',
           textShadow: `0 0 10px ${theme.neonBlue}80`,
           animation: 'heistGlow 3s infinite ease-in-out',
-          transition: 'text-shadow 0.8s ease-in-out',
         }}>
-          Target UnLock: Deals Ahead
+          CATEGORIES 
         </h2>
         <div style={{
-          display: 'flex',
-          justifyContent: 'space-around',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '20px',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: '30px',
           maxWidth: '1200px',
           margin: '0 auto',
-          transition: 'all 0.8s ease-in-out',
+          padding: '20px',
+          background: `linear-gradient(45deg, ${theme.neonBlue}10, ${theme.heistRed}10)`,
+          borderRadius: '15px',
+          boxShadow: `0 0 20px ${theme.neonBlue}40`,
         }}>
           {categories.map((category, index) => (
             <CategoryCard
@@ -595,7 +597,6 @@ const HomePage = () => {
               title={category.title}
               imageUrl={category.imageUrl}
               position={index}
-              isClicked={clickedTitle === category.title}
             />
           ))}
         </div>
@@ -629,11 +630,6 @@ const HomePage = () => {
           50% { text-shadow: 0 0 15px ${theme.neonBlue}aa; }
           100% { text-shadow: 0 0 10px ${theme.neonBlue}80; }
         }
-        @keyframes targetPulse {
-          0% { opacity: 0.8; }
-          50% { opacity: 1; }
-          100% { opacity: 0.8; }
-        }
         @keyframes vaultPulse {
           0% { box-shadow: 0 0 20px ${theme.neonBlue}80; }
           50% { box-shadow: 0 0 30px ${theme.neonBlue}aa; }
@@ -643,9 +639,23 @@ const HomePage = () => {
           0% { transform: translate(-50%, -50%) rotate(0deg); }
           100% { transform: translate(-50%, -50%) rotate(360deg); }
         }
+        @keyframes scanRotate {
+          0% { transform: scale(1) rotate(0deg); }
+          100% { transform: scale(1) rotate(360deg); }
+        }
+        @keyframes lockBreak {
+          0% { transform: scale(1); opacity: 1; }
+          50% { transform: scale(1.1); opacity: 0.8; }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes laserSweep {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
         @media (max-width: 768px) {
           .categories-container {
-            justifyContent: 'center';
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
           }
         }
       `}</style>
