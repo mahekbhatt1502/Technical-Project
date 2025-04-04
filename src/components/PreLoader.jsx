@@ -30,18 +30,17 @@ const PreLoader = ({ onLoadingComplete }) => {
           setTimeout(onLoadingComplete, 1000); // Dramatic final reveal
           return 100;
         }
-        return prev + 4; // Slower for cinematic effect
+        return prev + 15; // Slower for cinematic effect
       });
-    }, 80); // Smooth progression
+    }, 60); // Smooth progression
     return () => clearInterval(timer);
   }, [onLoadingComplete]);
 
   useEffect(() => {
-    // Update heist phase text
-    if (progress < 33) setHeistPhase('INFILTRATING PRICES...');
-    else if (progress < 66) setHeistPhase('COMPARING TARGETS...');
-    else if (progress < 100) setHeistPhase('LOCKING IN SAVINGS...');
+    if (progress < 50) setHeistPhase('COMPARING...');
+    else if (progress < 100) setHeistPhase('ANALYZING DEALS...');
   }, [progress]);
+  
 
   return (
     <div style={{
@@ -169,24 +168,21 @@ const PreLoader = ({ onLoadingComplete }) => {
           opacity: 0.8,
         }} />
       ))}
-
-      {/* Final Reveal Text */}
-      {progress >= 100 && (
-        <div style={{
-          position: 'absolute',
-          top: '50%',
-          transform: 'translateY(-50%)',
-          fontSize: '48px',
-          color: theme.neonBlue,
-          textShadow: `0 0 20px ${theme.neonBlue}aa, 0 0 30px ${theme.heistRed}80`,
-          animation: 'revealFlash 1s ease-in-out',
-          textTransform: 'uppercase',
-        }}>
-          PRICIFY: BEST DEAL SECURED
-        </div>
-      )}
-
-      {/* Skip Button */}
+    {progress >= 100 && (
+    <div style={{
+    position: 'absolute',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    fontSize: '48px',
+    color: theme.neonBlue,
+    textShadow: `0 0 20px ${theme.neonBlue}aa, 0 0 30px ${theme.heistRed}80`,
+    animation: 'revealFlash 1s ease-in-out',
+    textTransform: 'uppercase',
+  }}>
+    BEST DEALS UNLOCKED
+  </div>
+)}
+ {/* Skip Button */}
       <button
         onClick={onLoadingComplete}
         style={{
