@@ -109,7 +109,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
           {prices.map((priceObj, index) => (
             <p key={index} style={{ margin: '2px 0' }}>
               <span style={{ color: theme.silverLining }}>
-                ₹{parseFloat(priceObj.price).toFixed(2)}{' '}
+              ₹{priceObj.price}{'.00'}
               </span>
               <span style={{ color: theme.heistRed }}>
                 ({sources[index]})

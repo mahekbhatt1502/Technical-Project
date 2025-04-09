@@ -26,9 +26,15 @@ const debounce = (func, delay) => {
 };
 
 // Product Card Component
-const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
+const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductClick }) => {
   const cardWidth = '200px';
   const imageHeight = '200px';
+
+  const handleClick = () => {
+    if (onProductClick) {
+      onProductClick(name, imageUrl, prices, sources, productLinks);
+    }
+  };
 
   return (
     <div
@@ -49,6 +55,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
         boxSizing: 'border-box',
         margin: '0 auto',
       }}
+      onClick={handleClick}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-5px)';
         e.currentTarget.style.boxShadow = `0 8px 20px ${theme.neonBlue}80`;
@@ -61,7 +68,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
       }}
     >
       <img
-        src={imageUrl}
+        src={imageUrl || 'https://via.placeholder.com/240?text=No+Image'}
         alt={name}
         loading="lazy"
         style={{
@@ -72,6 +79,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
           marginBottom: '8px',
           transition: 'transform 0.3s ease',
         }}
+        onError={(e) => (e.target.src = 'https://via.placeholder.com/240?text=No+Image')}
       />
       <p
         style={{
@@ -104,7 +112,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
           {prices.map((priceObj, index) => (
             <p key={index} style={{ margin: '2px 0' }}>
               <span style={{ color: theme.silverLining }}>
-                ₹{parseFloat(priceObj.price).toFixed(2)}{' '}
+              ₹{priceObj.price}{'.00'}
               </span>
               <a
                 href={productLinks[index]}
@@ -178,13 +186,13 @@ const Jeans = () => {
         if (sourceFilter === 'all' || sourceFilter === 'amazon') {
           const { data, error } = await amazonQuery;
           if (error) throw new Error(`Amazon fetch error: ${error.message}`);
-          amazonData = data;
+          amazonData = data || [];
         }
 
         if (sourceFilter === 'all' || sourceFilter === 'flipkart') {
           const { data, error } = await flipkartQuery;
           if (error) throw new Error(`Flipkart fetch error: ${error.message}`);
-          flipkartData = data;
+          flipkartData = data || [];
         }
 
         const amazonMap = new Map();
@@ -267,6 +275,12 @@ const Jeans = () => {
   const handleSourceFilterChange = (value) => {
     setSourceFilter(value);
     setCurrentPage(1);
+  };
+
+  const handleProductClick = (name, imageUrl, prices, sources, productLinks) => {
+    navigate(`/product/${encodeURIComponent(name)}`, {
+      state: { name, imageUrl, prices, sources, productLinks }
+    });
   };
 
   const renderPageNumbers = () => {
@@ -681,6 +695,7 @@ const Jeans = () => {
                     sources={product.sources}
                     productLinks={product.productLinks}
                     prices={product.prices}
+                    onProductClick={handleProductClick}
                   />
                 ))
               ) : (

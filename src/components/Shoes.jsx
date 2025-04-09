@@ -25,10 +25,14 @@ const debounce = (func, delay) => {
   };
 };
 
-// Product Card Component (unchanged)
-const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
+// Product Card Component
+const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductClick }) => {
   const cardWidth = '200px';
   const imageHeight = '200px';
+
+  const handleClick = () => {
+    onProductClick(name, imageUrl, prices, sources, productLinks);
+  };
 
   return (
     <div
@@ -49,6 +53,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
         boxSizing: 'border-box',
         margin: '0 auto',
       }}
+      onClick={handleClick}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-5px)';
         e.currentTarget.style.boxShadow = `0 8px 20px ${theme.neonBlue}80`;
@@ -104,7 +109,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
           {prices.map((priceObj, index) => (
             <p key={index} style={{ margin: '2px 0' }}>
               <span style={{ color: theme.silverLining }}>
-                ₹{parseFloat(priceObj.price).toFixed(2)}{' '}
+                ₹{priceObj.price}{'.00'}
               </span>
               <a
                 href={productLinks[index]}
@@ -153,13 +158,13 @@ const Sneakers = () => {
         let amazonQuery = supabase
           .from('Amazon')
           .select('Name, "Image Link", Description, "Product Link", Price, PID')
-          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%'); // Only Sneaker or Sneakers
+          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%');
         let flipkartQuery = supabase
           .from('Flipkart')
           .select('Name, "Image Link", Description, "Product Link", Price, PID')
-          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%'); // Only Sneaker or Sneakers
+          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%');
 
-        // Explicitly exclude jeans and T-shirts
+        // Explicitly exclude unrelated items
         amazonQuery = amazonQuery
           .not('Description', 'ilike', '%jeans%')
           .not('Description', 'ilike', '%t-shirt%')
@@ -292,6 +297,12 @@ const Sneakers = () => {
     setCurrentPage(1);
   };
 
+  const handleProductClick = (name, imageUrl, prices, sources, productLinks) => {
+    navigate(`/product/${encodeURIComponent(name)}`, {
+      state: { name, imageUrl, prices, sources, productLinks },
+    });
+  };
+
   const renderPageNumbers = () => {
     const maxPagesToShow = 5;
     const startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
@@ -335,7 +346,6 @@ const Sneakers = () => {
     return pageNumbers;
   };
 
-  // The rest of the UI remains unchanged
   return (
     <div
       style={{
@@ -691,6 +701,7 @@ const Sneakers = () => {
                     sources={product.sources}
                     productLinks={product.productLinks}
                     prices={product.prices}
+                    onProductClick={handleProductClick}
                   />
                 ))
               ) : (
