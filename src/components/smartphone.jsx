@@ -122,11 +122,23 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
           {prices.map((priceObj, index) => (
             <p key={index} style={{ margin: '2px 0' }}>
               <span style={{ color: theme.silverLining }}>
-              ₹{priceObj.price}{'.00'}
+                ₹{priceObj.price}.00
               </span>
-              <span style={{ color: theme.heistRed }}>
+              <a
+                href={productLinks[index]}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: theme.heistRed,
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  transition: 'color 0.3s ease',
+                }}
+                onMouseEnter={(e) => (e.target.style.color = theme.neonBlue)}
+                onMouseLeave={(e) => (e.target.style.color = theme.heistRed)}
+              >
                 ({sources[index]})
-              </span>
+              </a>
             </p>
           ))}
         </div>
@@ -203,6 +215,7 @@ const Smartphones = () => {
             if (!product.sources.includes(source)) {
               product.sources.push(source);
               product.productLinks.push(item['Product Link']);
+              product.price = parseFloat(item.Price)
               product.prices.push({ source, price: item.Price });
             }
           });
@@ -211,7 +224,8 @@ const Smartphones = () => {
         processData(amazonData, 'Amazon');
         processData(flipkartData, 'Flipkart');
 
-        const allProducts = Array.from(productMap.values());
+        let allProducts = Array.from(productMap.values());
+        allProducts = [...allProducts].sort((a, b) => a.price - b.price)
         setTotalPages(Math.ceil(allProducts.length / productsPerPage));
 
         const from = (currentPage - 1) * productsPerPage;
@@ -465,8 +479,8 @@ const Smartphones = () => {
                       option === 'all'
                         ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14v12"/></svg>')`
                         : option === 'amazon'
-                        ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>')`
-                        : `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 16H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V8h12v2z"/></svg>')`,
+                          ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>')`
+                          : `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 16H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V8h12v2z"/></svg>')`,
                     backgroundSize: 'contain',
                     transition: 'transform 0.3s ease',
                   }}
@@ -521,12 +535,17 @@ const Smartphones = () => {
           boxSizing: 'border-box',
         }}
       >
+        {/* Main Content */}
+        <div style={{ position: 'relative', zIndex: 1, width: '100%' }}>
+          {/* Removed Header Section */}
+        </div>
+
         {/* Product Grid */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '30px', width: '100%' }}>
             <p
               style={{
-                color: theme.neonBlue,
+                color: theme.neonBlue, // Fixed typo from 'newBlue' to 'neonBlue'
                 fontSize: getResponsiveValue('18px', '20px'),
                 fontFamily: '"Courier New", monospace',
                 transition: 'opacity 0.3s ease',

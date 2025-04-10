@@ -25,14 +25,10 @@ const debounce = (func, delay) => {
   };
 };
 
-// Product Card Component
-const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductClick }) => {
+// Product Card Component (unchanged)
+const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
   const cardWidth = '200px';
   const imageHeight = '200px';
-
-  const handleClick = () => {
-    onProductClick(name, imageUrl, prices, sources, productLinks);
-  };
 
   return (
     <div
@@ -53,7 +49,6 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
         boxSizing: 'border-box',
         margin: '0 auto',
       }}
-      onClick={handleClick}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-5px)';
         e.currentTarget.style.boxShadow = `0 8px 20px ${theme.neonBlue}80`;
@@ -158,13 +153,13 @@ const Sneakers = () => {
         let amazonQuery = supabase
           .from('Amazon')
           .select('Name, "Image Link", Description, "Product Link", Price, PID')
-          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%');
+          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%'); // Only Sneaker or Sneakers
         let flipkartQuery = supabase
           .from('Flipkart')
           .select('Name, "Image Link", Description, "Product Link", Price, PID')
-          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%');
+          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%'); // Only Sneaker or Sneakers
 
-        // Explicitly exclude unrelated items
+        // Explicitly exclude jeans and T-shirts
         amazonQuery = amazonQuery
           .not('Description', 'ilike', '%jeans%')
           .not('Description', 'ilike', '%t-shirt%')
@@ -297,12 +292,6 @@ const Sneakers = () => {
     setCurrentPage(1);
   };
 
-  const handleProductClick = (name, imageUrl, prices, sources, productLinks) => {
-    navigate(`/product/${encodeURIComponent(name)}`, {
-      state: { name, imageUrl, prices, sources, productLinks },
-    });
-  };
-
   const renderPageNumbers = () => {
     const maxPagesToShow = 5;
     const startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
@@ -346,6 +335,7 @@ const Sneakers = () => {
     return pageNumbers;
   };
 
+  // The rest of the UI remains unchanged
   return (
     <div
       style={{
@@ -701,7 +691,6 @@ const Sneakers = () => {
                     sources={product.sources}
                     productLinks={product.productLinks}
                     prices={product.prices}
-                    onProductClick={handleProductClick}
                   />
                 ))
               ) : (

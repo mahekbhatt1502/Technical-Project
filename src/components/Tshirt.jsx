@@ -25,7 +25,7 @@ const debounce = (func, delay) => {
   };
 };
 
-// Product Card Component
+// Product Card Component (Updated for price display consistency)
 const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductClick }) => {
   const cardWidth = '200px';
   const imageHeight = '200px';
@@ -41,7 +41,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
         borderRadius: '8px',
         padding: '10px',
         boxShadow: `0 4px 12px ${theme.shadow}`,
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
         cursor: 'pointer',
         border: `2px solid ${theme.neonBlue}`,
         width: cardWidth,
@@ -109,11 +109,23 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
           {prices.map((priceObj, index) => (
             <p key={index} style={{ margin: '2px 0' }}>
               <span style={{ color: theme.silverLining }}>
-              ₹{priceObj.price}{'.00'}
+                ₹{priceObj.price}.00
               </span>
-              <span style={{ color: theme.heistRed }}>
+              <a
+                href={productLinks[index]}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: theme.heistRed,
+                  textDecoration: 'none',
+                  fontWeight: '600',
+                  transition: 'color 0.3s ease',
+                }}
+                onMouseEnter={(e) => (e.target.style.color = theme.neonBlue)}
+                onMouseLeave={(e) => (e.target.style.color = theme.heistRed)}
+              >
                 ({sources[index]})
-              </span>
+              </a>
             </p>
           ))}
         </div>
@@ -340,7 +352,7 @@ const Tshirts = () => {
           flexDirection: 'column',
         }}
       >
-        {/* PRICIFY, Dynamic Denims, and Search Bar */}
+        {/* PRICIFY, T-Shirts Title, and Search Bar */}
         <div
           style={{
             display: 'flex',
@@ -376,7 +388,7 @@ const Tshirts = () => {
             </h1>
           </div>
 
-          {/* Dynamic Denims */}
+          {/* T-Shirts Title */}
           <h1
             style={{
               color: theme.silverLining,
@@ -423,7 +435,7 @@ const Tshirts = () => {
           />
         </div>
 
-        {/* Gender Filter (Crew Type) */}
+        {/* Gender Filter */}
         <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '20px' }}>
           <span
             style={{
@@ -511,7 +523,7 @@ const Tshirts = () => {
           </div>
         </div>
 
-        {/* Source Filter (Heist Targets) */}
+        {/* Source Filter */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span
             style={{
@@ -630,12 +642,6 @@ const Tshirts = () => {
           boxSizing: 'border-box',
         }}
       >
-        {/* Main Content */}
-        <div style={{ position: 'relative', zIndex: 1, width: '100%' }}>
-          {/* Removed Header Section */}
-        </div>
-
-        {/* Product Grid */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '30px', width: '100%' }}>
             <p
@@ -668,8 +674,8 @@ const Tshirts = () => {
               style={{
                 display: 'grid',
                 gridTemplateColumns: getResponsiveValue(
-                  'repeat(2, minmax(150px, 1fr))', // 2 columns on mobile
-                  'repeat(4, minmax(200px, 1fr))'  // 4 columns on desktop
+                  'repeat(2, minmax(150px, 1fr))',
+                  'repeat(4, minmax(200px, 1fr))'
                 ),
                 gap: getResponsiveValue('15px', '20px'),
                 width: '100%',

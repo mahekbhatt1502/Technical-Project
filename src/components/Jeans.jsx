@@ -25,15 +25,13 @@ const debounce = (func, delay) => {
   };
 };
 
-// Product Card Component
+// Product Card Component (Updated for consistency and navigation)
 const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductClick }) => {
   const cardWidth = '200px';
   const imageHeight = '200px';
 
   const handleClick = () => {
-    if (onProductClick) {
-      onProductClick(name, imageUrl, prices, sources, productLinks);
-    }
+    onProductClick(name, imageUrl, prices, sources, productLinks);
   };
 
   return (
@@ -43,7 +41,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
         borderRadius: '8px',
         padding: '10px',
         boxShadow: `0 4px 12px ${theme.shadow}`,
-        transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+        transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
         cursor: 'pointer',
         border: `2px solid ${theme.neonBlue}`,
         width: cardWidth,
@@ -68,7 +66,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
       }}
     >
       <img
-        src={imageUrl || 'https://via.placeholder.com/240?text=No+Image'}
+        src={imageUrl}
         alt={name}
         loading="lazy"
         style={{
@@ -79,7 +77,6 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
           marginBottom: '8px',
           transition: 'transform 0.3s ease',
         }}
-        onError={(e) => (e.target.src = 'https://via.placeholder.com/240?text=No+Image')}
       />
       <p
         style={{
@@ -112,7 +109,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
           {prices.map((priceObj, index) => (
             <p key={index} style={{ margin: '2px 0' }}>
               <span style={{ color: theme.silverLining }}>
-              ₹{priceObj.price}{'.00'}
+                ₹{priceObj.price}.00
               </span>
               <a
                 href={productLinks[index]}
@@ -433,7 +430,7 @@ const Jeans = () => {
           />
         </div>
 
-        {/* Gender Filter (Crew Type) */}
+        {/* Gender Filter */}
         <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '20px' }}>
           <span
             style={{
@@ -521,7 +518,7 @@ const Jeans = () => {
           </div>
         </div>
 
-        {/* Source Filter (Heist Targets) */}
+        {/* Source Filter */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span
             style={{
@@ -640,7 +637,6 @@ const Jeans = () => {
           boxSizing: 'border-box',
         }}
       >
-        {/* Product Grid */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '30px', width: '100%' }}>
             <p

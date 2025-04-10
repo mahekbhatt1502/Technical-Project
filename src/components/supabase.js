@@ -8,4 +8,4 @@ const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS
 // Create Supabase client
 const supabase = createClient(supabaseUrl, supabaseKey)
 
-export default supabase;
+export default supabase
