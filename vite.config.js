@@ -7,5 +7,8 @@ export default defineConfig({
   server:{
     host: '0.0.0.0',
     port:8021
+  },
+  build: {
+    rollupOptions: { external: ['@rollup/rollup-linux-x64-gnu'] }
   }
 })
