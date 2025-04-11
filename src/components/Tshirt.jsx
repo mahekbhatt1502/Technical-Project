@@ -1089,7 +1089,7 @@ const Tshirts = () => {
       {/* Product Section */}
       <div
         style={{
-          width: '100%',
+          width: '80%',
           maxWidth: 'calc(1400px - 250px - 20px)',
           display: 'flex',
           flexDirection: 'column',
