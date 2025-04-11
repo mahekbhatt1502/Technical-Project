@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import supabase from './supabase.js';
 import { useNavigate } from 'react-router-dom';
 
-// Theme Palette
-const theme = {
+// Theme Palette for Sneakers (unchanged)
+const themeSneakers = {
   midnightBlack: '#2C2C2C',
   neonBlue: '#00E5FF',
   heistRed: '#FF4D4D',
@@ -12,11 +12,25 @@ const theme = {
   shadow: 'rgba(0, 0, 0, 0.4)',
 };
 
-// Responsive Utility
+// Enhanced Theme Palette for ProductDetails (unchanged)
+const themePopup = {
+  darkGray: '#2C2C2C',
+  subtleCyan: '#A3D8F4',
+  accentRed: '#CC3333',
+  silver: '#D9D8D9',
+  shadow: 'rgba(0, 0, 0, 0.15)',
+  gradient: 'linear-gradient(135deg, #333333 0%, #1A1A1A 100%)',
+  subtleGlow: 'rgba(163, 216, 244, 0.05)',
+  backdrop: 'rgba(0, 0, 0, 0.6)',
+  glow: '0 0 10px rgba(163, 216, 244, 0.3)',
+  cardBackground: '#3A3A3A',
+};
+
+// Responsive Utility (unchanged)
 const getResponsiveValue = (mobile, desktop) =>
   window.innerWidth <= 768 ? mobile : desktop;
 
-// Debounce utility
+// Debounce utility (unchanged)
 const debounce = (func, delay) => {
   let timeoutId;
   return (...args) => {
@@ -25,21 +39,25 @@ const debounce = (func, delay) => {
   };
 };
 
-// Product Card Component (unchanged)
-const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
+// Product Card Component with hover effect on name
+const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductClick }) => {
   const cardWidth = '200px';
   const imageHeight = '200px';
+
+  const handleClick = () => {
+    onProductClick({ name, imageUrl, prices, sources, productLinks });
+  };
 
   return (
     <div
       style={{
-        background: theme.midnightBlack,
+        background: themeSneakers.midnightBlack,
         borderRadius: '8px',
         padding: '10px',
-        boxShadow: `0 4px 12px ${theme.shadow}`,
+        boxShadow: `0 4px 12px ${themeSneakers.shadow}`,
         transition: 'transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease',
         cursor: 'pointer',
-        border: `2px solid ${theme.neonBlue}`,
+        border: `2px solid ${themeSneakers.neonBlue}`,
         width: cardWidth,
         minWidth: cardWidth,
         height: 'auto',
@@ -49,15 +67,16 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
         boxSizing: 'border-box',
         margin: '0 auto',
       }}
+      onClick={handleClick}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = 'translateY(-5px)';
-        e.currentTarget.style.boxShadow = `0 8px 20px ${theme.neonBlue}80`;
-        e.currentTarget.style.borderColor = theme.heistRed;
+        e.currentTarget.style.boxShadow = `0 8px 20px ${themeSneakers.neonBlue}80`;
+        e.currentTarget.style.borderColor = themeSneakers.heistRed;
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = 'translateY(0)';
-        e.currentTarget.style.boxShadow = `0 4px 12px ${theme.shadow}`;
-        e.currentTarget.style.borderColor = theme.neonBlue;
+        e.currentTarget.style.boxShadow = `0 4px 12px ${themeSneakers.shadow}`;
+        e.currentTarget.style.borderColor = themeSneakers.neonBlue;
       }}
     >
       <img
@@ -75,7 +94,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
       />
       <p
         style={{
-          color: theme.silverLining,
+          color: themeSneakers.silverLining,
           margin: '0 0 6px',
           fontSize: '15px',
           fontWeight: '600',
@@ -85,6 +104,13 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
+          transition: 'color 0.3s ease', // Added for hover effect
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.color = themeSneakers.neonBlue; // White to blue on hover
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.color = themeSneakers.silverLining; // Back to white
         }}
       >
         {name}
@@ -94,7 +120,7 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
           style={{
             margin: '4px 0 0',
             fontSize: '0.85em',
-            color: theme.neonBlue,
+            color: themeSneakers.neonBlue,
             textAlign: 'center',
             fontFamily: '"Courier New", monospace',
             fontWeight: '500',
@@ -103,21 +129,21 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
         >
           {prices.map((priceObj, index) => (
             <p key={index} style={{ margin: '2px 0' }}>
-              <span style={{ color: theme.silverLining }}>
-                ₹{priceObj.price}{'.00'}
+              <span style={{ color: themeSneakers.silverLining }}>
+                ₹{priceObj.price}.00
               </span>
               <a
                 href={productLinks[index]}
                 target="_blank"
                 rel="noopener noreferrer"
                 style={{
-                  color: theme.heistRed,
+                  color: themeSneakers.heistRed,
                   textDecoration: 'none',
                   fontWeight: '600',
                   transition: 'color 0.3s ease',
                 }}
-                onMouseEnter={(e) => (e.target.style.color = theme.neonBlue)}
-                onMouseLeave={(e) => (e.target.style.color = theme.heistRed)}
+                onMouseEnter={(e) => (e.target.style.color = themeSneakers.neonBlue)}
+                onMouseLeave={(e) => (e.target.style.color = themeSneakers.heistRed)}
               >
                 ({sources[index]})
               </a>
@@ -129,7 +155,472 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks }) => {
   );
 };
 
-// Main Sneakers Component
+// Enhanced Recommended Product Card for Popup with larger size and hover effect
+const RecommendedProductCard = ({ name = 'Product' }) => {
+  return (
+    <div
+      style={{
+        background: themePopup.cardBackground,
+        border: `1px solid ${themePopup.darkGray}`,
+        borderRadius: '6px',
+        padding: '12px', // Increased padding
+        boxShadow: `0 2px 6px ${themePopup.shadow}`,
+        transition: 'all 0.2s ease-in-out',
+        width: getResponsiveValue('140px', '200px'), // Increased width
+        height: getResponsiveValue('180px', '260px'), // Increased height
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        boxSizing: 'border-box',
+        margin: '0 0 10px 0',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'scale(1.03)';
+        e.currentTarget.style.boxShadow = `0 4px 10px ${themePopup.shadow}`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'scale(1)';
+        e.currentTarget.style.boxShadow = `0 2px 6px ${themePopup.shadow}`;
+      }}
+      onTouchStart={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
+      onTouchEnd={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+    >
+      <div
+        style={{
+          width: '100%',
+          height: getResponsiveValue('120px', '180px'), // Increased image height
+          background: '#555',
+          borderRadius: '4px',
+          marginBottom: '12px', // Adjusted margin
+        }}
+      />
+      <div
+        style={{
+          color: themePopup.silver,
+          fontSize: getResponsiveValue('14px', '16px'), // Increased font size
+          textAlign: 'center',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          textOverflow: 'ellipsis',
+          width: '100%',
+          transition: 'color 0.3s ease', // Added for hover effect
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.color = themeSneakers.neonBlue; // White to blue on hover
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.color = themePopup.silver; // Back to white
+        }}
+      >
+        {name}
+      </div>
+    </div>
+  );
+};
+
+// ProductDetails Popup Component with changes
+ // Product Details Popup Component (aligned with Smartphones design)
+const ProductDetails = ({ product, onClose }) => {
+  const [fetchedDescription, setFetchedDescription] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showFirstTwo, setShowFirstTwo] = useState(true);
+
+  const {
+    name = 'Unknown Product',
+    imageUrl = 'https://via.placeholder.com/300?text=No+Image',
+    prices = [],
+    sources = [],
+    productLinks = [],
+  } = product || {};
+
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        let amazonQuery = supabase
+          .from('Amazon')
+          .select('Description')
+          .eq('Name', name)
+          .eq('Image Link', imageUrl);
+        let flipkartQuery = supabase
+          .from('Flipkart')
+          .select('Description')
+          .eq('Name', name)
+          .eq('Image Link', imageUrl);
+
+        const [amazonRes, flipkartRes] = await Promise.all([amazonQuery, flipkartQuery]);
+
+        if (amazonRes.error) throw new Error(`Amazon fetch error: ${amazonRes.error.message}`);
+        if (flipkartRes.error) throw new Error(`Flipkart fetch error: ${flipkartRes.error.message}`);
+
+        const amazonData = amazonRes.data || [];
+        const flipkartData = flipkartRes.data || [];
+
+        const fetchedDesc =
+          amazonData.length > 0
+            ? amazonData[0].Description
+            : flipkartData.length > 0
+              ? flipkartData[0].Description
+              : 'No description available';
+
+        setFetchedDescription(fetchedDesc);
+      } catch (err) {
+        console.error('Error fetching product details:', err);
+        setError('Failed to fetch product details.');
+        setFetchedDescription('No description available');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProductDetails();
+  }, [name, imageUrl]);
+
+  const displayDescription = fetchedDescription;
+
+  const recommendedProducts = [
+    { name: 'Sneaker 1' },
+    { name: 'Sneaker 2' },
+    { name: 'Sneaker 3' },
+    { name: 'Sneaker 4' },
+  ];
+
+  const handleToggleProducts = () => {
+    setShowFirstTwo(!showFirstTwo);
+  };
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        background: 'rgba(0, 0, 0, 0.85)',
+        zIndex: 1000,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        animation: 'fadeIn 0.3s ease-in-out',
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: '#1C1C1C',
+          width: '90vw',
+          maxWidth: '1200px',
+          height: 'auto',
+          maxHeight: '90vh',
+          borderRadius: '12px',
+          boxShadow: `0 10px 30px ${themePopup.shadow}`,
+          display: 'flex',
+          flexDirection: getResponsiveValue('column', 'row'),
+          alignItems: 'stretch',
+          overflow: 'hidden',
+          position: 'relative',
+          zIndex: 1001,
+          border: `1px solid ${themeSneakers.stealthGray}`,
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '15px',
+            right: '15px',
+            background: 'transparent',
+            border: `1px solid ${themeSneakers.silverLining}`,
+            color: themeSneakers.silverLining,
+            cursor: 'pointer',
+            fontSize: '24px',
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = themeSneakers.heistRed;
+            e.target.style.color = '#1C1C1C';
+            e.target.style.borderColor = themeSneakers.heistRed;
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'transparent';
+            e.target.style.color = themeSneakers.silverLining;
+            e.target.style.borderColor = themeSneakers.silverLining;
+          }}
+        >
+          ×
+        </button>
+
+        <div
+          style={{
+            width: getResponsiveValue('100%', '65%'),
+            padding: '25px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            background: '#1C1C1C',
+            overflowY: 'auto',
+            boxSizing: 'border-box',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '400px',
+              marginBottom: '20px',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              position: 'relative',
+              border: `1px solid ${themeSneakers.stealthGray}`,
+            }}
+          >
+            <img
+              src={imageUrl}
+              alt={name}
+              style={{
+                width: '100%',
+                height: 'auto',
+                maxHeight: '300px',
+                objectFit: 'contain',
+                borderRadius: '8px',
+              }}
+              onError={(e) => (e.target.src = 'https://via.placeholder.com/300?text=No+Image')}
+            />
+          </div>
+
+          <h2
+            style={{
+              color: themeSneakers.silverLining,
+              fontSize: getResponsiveValue('22px', '28px'),
+              fontWeight: '700',
+              marginBottom: '15px',
+              textAlign: 'center',
+              letterSpacing: '1px',
+              fontFamily: '"Courier New", monospace',
+            }}
+          >
+            {name}
+          </h2>
+
+          <div
+            style={{
+              color: themeSneakers.silverLining,
+              fontSize: '15px',
+              lineHeight: '1.6',
+              marginBottom: '20px',
+              overflowY: 'auto',
+              maxHeight: '180px',
+              textAlign: 'center',
+              width: '100%',
+              maxWidth: '400px',
+            }}
+          >
+            {loading ? (
+              <p style={{ color: themeSneakers.neonBlue }}>Loading...</p>
+            ) : error ? (
+              <p style={{ color: themeSneakers.heistRed }}>{error}</p>
+            ) : (
+              <p>{displayDescription}</p>
+            )}
+          </div>
+
+          {prices && prices.length > 0 && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr',
+                gap: '10px',
+                width: '100%',
+                maxWidth: '350px',
+              }}
+            >
+              {prices.map((priceObj, index) => (
+                <a
+                  key={index}
+                  href={productLinks[index] || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '12px 20px',
+                    background: '#252525',
+                    color: themeSneakers.silverLining,
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    transition: 'all 0.3s ease',
+                    border: `1px solid ${themeSneakers.stealthGray}`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = themeSneakers.neonBlue;
+                    e.target.style.color = '#1C1C1C';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#252525';
+                    e.target.style.color = themeSneakers.silverLining;
+                  }}
+                >
+                  <span>₹{priceObj.price}.00</span>
+                  <span>{sources[index]}</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div
+          style={{
+            width: getResponsiveValue('100%', '35%'),
+            padding: '25px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            background: '#1C1C1C',
+            overflowY: 'auto',
+            boxSizing: 'border-box',
+            borderLeft: getResponsiveValue('none', `1px solid ${themeSneakers.stealthGray}`),
+          }}
+        >
+          <h3
+            style={{
+              color: themeSneakers.silverLining,
+              fontSize: getResponsiveValue('20px', '24px'),
+              fontWeight: '700',
+              marginBottom: '20px',
+              letterSpacing: '1px',
+              fontFamily: '"Courier New", monospace',
+            }}
+          >
+            RECOMMENDED
+          </h3>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: getResponsiveValue('repeat(2, 1fr)', '1fr'),
+              gap: '15px',
+              width: '100%',
+              justifyItems: 'center',
+              flexGrow: 1,
+            }}
+          >
+            {(showFirstTwo ? recommendedProducts.slice(0, 2) : recommendedProducts.slice(2, 4)).map(
+              (product, index) => (
+                <div
+                  key={index}
+                  style={{
+                    background: '#252525',
+                    border: `1px solid ${themeSneakers.stealthGray}`,
+                    borderRadius: '8px',
+                    padding: '12px',
+                    width: getResponsiveValue('140px', '200px'),
+                    height: getResponsiveValue('180px', '260px'),
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxSizing: 'border-box',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#2F2F2F';
+                    e.target.style.borderColor = themeSneakers.neonBlue;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#252525';
+                    e.target.style.borderColor = themeSneakers.stealthGray;
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '100%',
+                      height: getResponsiveValue('120px', '180px'),
+                      background: '#333333',
+                      borderRadius: '6px',
+                      marginBottom: '12px',
+                    }}
+                  />
+                  <div
+                    style={{
+                      color: themeSneakers.silverLining,
+                      fontSize: getResponsiveValue('14px', '16px'),
+                      textAlign: 'center',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      width: '100%',
+                      transition: 'color 0.3s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.color = themeSneakers.neonBlue;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.color = themeSneakers.silverLining;
+                    }}
+                  >
+                    {product.name}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+          {recommendedProducts.length > 2 && (
+            <button
+              onClick={handleToggleProducts}
+              style={{
+                marginTop: '15px',
+                padding: '10px 25px',
+                background: '#252525',
+                color: themeSneakers.silverLining,
+                border: `1px solid ${themeSneakers.stealthGray}`,
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontFamily: '"Courier New", monospace',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = themeSneakers.neonBlue;
+                e.target.style.color = '#1C1C1C';
+                e.target.style.borderColor = themeSneakers.neonBlue;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = '#252525';
+                e.target.style.color = themeSneakers.silverLining;
+                e.target.style.borderColor = themeSneakers.stealthGray;
+              }}
+            >
+              {showFirstTwo ? '▼' : '▲'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        `}
+      </style>
+    </div>
+  );
+};
+// Main Sneakers Component (unchanged)
 const Sneakers = () => {
   const navigate = useNavigate();
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -142,6 +633,7 @@ const Sneakers = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 100;
   const [totalPages, setTotalPages] = useState(1);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     const fetchSneakers = async () => {
@@ -149,31 +641,25 @@ const Sneakers = () => {
         setLoading(true);
         setError(null);
 
-        // Base queries for Amazon and Flipkart, strictly targeting sneakers
         let amazonQuery = supabase
           .from('Amazon')
           .select('Name, "Image Link", Description, "Product Link", Price, PID')
-          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%'); // Only Sneaker or Sneakers
+          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%')
+          .not('Description', 'ilike', '%jeans%')
+          .not('Description', 'ilike', '%t-shirt%')
+          .not('Description', 'ilike', '%tshirt%')
+          .not('Description', 'ilike', '%shirt%')
+          .not('Description', 'ilike', '%pants%');
         let flipkartQuery = supabase
           .from('Flipkart')
           .select('Name, "Image Link", Description, "Product Link", Price, PID')
-          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%'); // Only Sneaker or Sneakers
-
-        // Explicitly exclude jeans and T-shirts
-        amazonQuery = amazonQuery
-          .not('Description', 'ilike', '%jeans%')
-          .not('Description', 'ilike', '%t-shirt%')
-          .not('Description', 'ilike', '%tshirt%')
-          .not('Description', 'ilike', '%shirt%')
-          .not('Description', 'ilike', '%pants%');
-        flipkartQuery = flipkartQuery
+          .or('Description.ilike.%Sneaker%,Description.ilike.%Sneakers%')
           .not('Description', 'ilike', '%jeans%')
           .not('Description', 'ilike', '%t-shirt%')
           .not('Description', 'ilike', '%tshirt%')
           .not('Description', 'ilike', '%shirt%')
           .not('Description', 'ilike', '%pants%');
 
-        // Apply search query filter
         if (searchQuery) {
           amazonQuery = amazonQuery.or(
             `Description.ilike.%${searchQuery}%,Name.ilike.%${searchQuery}%`
@@ -183,7 +669,6 @@ const Sneakers = () => {
           );
         }
 
-        // Apply gender filter
         if (genderFilter === 'men') {
           amazonQuery = amazonQuery.or('Description.ilike.%men%,Description.ilike.%male%');
           flipkartQuery = flipkartQuery.or('Description.ilike.%men%,Description.ilike.%male%');
@@ -245,12 +730,14 @@ const Sneakers = () => {
           if (!acc[key].sources.includes(product.source)) {
             acc[key].sources.push(product.source);
             acc[key].productLinks.push(product.productLink);
+            acc[key].price = parseFloat(product.price)
             acc[key].prices.push({ source: product.source, price: product.price });
           }
           return acc;
         }, {});
 
-        const allProducts = Object.values(productMap);
+        let allProducts = Object.values(productMap);
+        allProducts = [...allProducts].sort((a, b) => a.prices[0]?.price - b.prices[0]?.price || 0);
         setTotalPages(Math.ceil(allProducts.length / productsPerPage));
 
         const from = (currentPage - 1) * productsPerPage;
@@ -292,6 +779,14 @@ const Sneakers = () => {
     setCurrentPage(1);
   };
 
+  const handleProductClick = (product) => {
+    setSelectedProduct(product);
+  };
+
+  const handleClosePopup = () => {
+    setSelectedProduct(null);
+  };
+
   const renderPageNumbers = () => {
     const maxPagesToShow = 5;
     const startPage = Math.max(1, currentPage - Math.floor(maxPagesToShow / 2));
@@ -306,10 +801,10 @@ const Sneakers = () => {
           style={{
             margin: '0 5px',
             padding: '8px 12px',
-            border: `1px solid ${theme.neonBlue}`,
+            border: `1px solid ${themeSneakers.neonBlue}`,
             borderRadius: '12px',
-            background: currentPage === i ? theme.neonBlue : theme.midnightBlack,
-            color: currentPage === i ? theme.midnightBlack : theme.silverLining,
+            background: currentPage === i ? themeSneakers.neonBlue : themeSneakers.midnightBlack,
+            color: currentPage === i ? themeSneakers.midnightBlack : themeSneakers.silverLining,
             cursor: 'pointer',
             fontFamily: '"Courier New", monospace',
             fontSize: '14px',
@@ -317,15 +812,15 @@ const Sneakers = () => {
           }}
           onMouseEnter={(e) => {
             if (currentPage !== i) {
-              e.target.style.background = theme.heistRed;
-              e.target.style.color = theme.silverLining;
+              e.target.style.background = themeSneakers.heistRed;
+              e.target.style.color = themeSneakers.silverLining;
             }
           }}
           onMouseLeave={(e) => {
             e.target.style.background =
-              currentPage === i ? theme.neonBlue : theme.midnightBlack;
+              currentPage === i ? themeSneakers.neonBlue : themeSneakers.midnightBlack;
             e.target.style.color =
-              currentPage === i ? theme.midnightBlack : theme.silverLining;
+              currentPage === i ? themeSneakers.midnightBlack : themeSneakers.silverLining;
           }}
         >
           {i}
@@ -335,19 +830,19 @@ const Sneakers = () => {
     return pageNumbers;
   };
 
-  // The rest of the UI remains unchanged
   return (
     <div
       style={{
         minHeight: '100vh',
         width: '100vw',
-        background: `${theme.midnightBlack}`,
+        background: `${themeSneakers.midnightBlack}`,
         fontFamily: '"Courier New", monospace',
         padding: getResponsiveValue('20px 5%', '40px 5%'),
         overflowX: 'hidden',
         boxSizing: 'border-box',
         display: 'flex',
         flexWrap: 'wrap',
+        position: 'relative',
       }}
     >
       <div
@@ -378,33 +873,33 @@ const Sneakers = () => {
           >
             <h1
               style={{
-                color: theme.neonBlue,
+                color: themeSneakers.neonBlue,
                 fontSize: getResponsiveValue('28px', '36px'),
                 fontWeight: '700',
                 margin: 0,
                 transition: 'color 0.3s ease',
-                textShadow: `0 0 8px ${theme.neonBlue}80`,
+                textShadow: `0 0 8px ${themeSneakers.neonBlue}80`,
                 fontFamily: '"Courier New", monospace',
               }}
-              onMouseEnter={(e) => (e.target.style.color = theme.heistRed)}
-              onMouseLeave={(e) => (e.target.style.color = theme.neonBlue)}
+              onMouseEnter={(e) => (e.target.style.color = themeSneakers.heistRed)}
+              onMouseLeave={(e) => (e.target.style.color = themeSneakers.neonBlue)}
             >
               PRICIFY
             </h1>
           </div>
           <h1
             style={{
-              color: theme.silverLining,
+              color: themeSneakers.silverLining,
               fontSize: getResponsiveValue('20px', '28px'),
               fontWeight: '700',
               margin: '10px 0',
               textAlign: 'left',
               transition: 'color 0.3s ease',
-              textShadow: `0 0 8px ${theme.neonBlue}80`,
+              textShadow: `0 0 8px ${themeSneakers.neonBlue}80`,
               display: 'block',
             }}
-            onMouseEnter={(e) => (e.target.style.color = theme.neonBlue)}
-            onMouseLeave={(e) => (e.target.style.color = theme.silverLining)}
+            onMouseEnter={(e) => (e.target.style.color = themeSneakers.neonBlue)}
+            onMouseLeave={(e) => (e.target.style.color = themeSneakers.silverLining)}
           >
             SNEAKERS VAULT
           </h1>
@@ -416,21 +911,21 @@ const Sneakers = () => {
               width: getResponsiveValue('100%', '100%'),
               padding: getResponsiveValue('10px 15px', '12px 20px'),
               borderRadius: '12px',
-              border: `1px solid ${theme.neonBlue}`,
-              background: theme.midnightBlack,
+              border: `1px solid ${themeSneakers.neonBlue}`,
+              background: themeSneakers.midnightBlack,
               fontSize: getResponsiveValue('14px', '16px'),
-              color: theme.silverLining,
+              color: themeSneakers.silverLining,
               outline: 'none',
               transition: 'border-color 0.3s ease, box-shadow 0.3s ease',
               fontFamily: '"Courier New", monospace',
               boxSizing: 'border-box',
             }}
             onFocus={(e) => {
-              e.target.style.borderColor = theme.heistRed;
-              e.target.style.boxShadow = `0 0 8px ${theme.heistRed}80`;
+              e.target.style.borderColor = themeSneakers.heistRed;
+              e.target.style.boxShadow = `0 0 8px ${themeSneakers.heistRed}80`;
             }}
             onBlur={(e) => {
-              e.target.style.borderColor = theme.neonBlue;
+              e.target.style.borderColor = themeSneakers.neonBlue;
               e.target.style.boxShadow = 'none';
             }}
           />
@@ -438,14 +933,14 @@ const Sneakers = () => {
         <div style={{ display: 'flex', flexDirection: 'column', marginBottom: '20px' }}>
           <span
             style={{
-              color: theme.silverLining,
+              color: themeSneakers.silverLining,
               fontWeight: '500',
               marginBottom: '10px',
               fontFamily: '"Courier New", monospace',
               fontSize: '14px',
               letterSpacing: '1px',
               textTransform: 'uppercase',
-              borderLeft: `3px solid ${theme.neonBlue}`,
+              borderLeft: `3px solid ${themeSneakers.neonBlue}`,
               paddingLeft: '8px',
             }}
           >
@@ -457,9 +952,9 @@ const Sneakers = () => {
                 key={option}
                 onClick={() => handleGenderFilterChange(option)}
                 style={{
-                  background: genderFilter === option ? theme.stealthGray : 'transparent',
-                  color: genderFilter === option ? theme.neonBlue : theme.silverLining,
-                  border: `1px solid ${theme.stealthGray}`,
+                  background: genderFilter === option ? themeSneakers.stealthGray : 'transparent',
+                  color: genderFilter === option ? themeSneakers.neonBlue : themeSneakers.silverLining,
+                  border: `1px solid ${themeSneakers.stealthGray}`,
                   borderRadius: '6px',
                   padding: '8px 12px',
                   cursor: 'pointer',
@@ -475,15 +970,15 @@ const Sneakers = () => {
                 }}
                 onMouseEnter={(e) => {
                   if (genderFilter !== option) {
-                    e.target.style.borderColor = theme.neonBlue;
-                    e.target.style.color = theme.neonBlue;
-                    e.target.style.boxShadow = `inset 0 0 8px ${theme.neonBlue}20`;
+                    e.target.style.borderColor = themeSneakers.neonBlue;
+                    e.target.style.color = themeSneakers.neonBlue;
+                    e.target.style.boxShadow = `inset 0 0 8px ${themeSneakers.neonBlue}20`;
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (genderFilter !== option) {
-                    e.target.style.borderColor = theme.stealthGray;
-                    e.target.style.color = theme.silverLining;
+                    e.target.style.borderColor = themeSneakers.stealthGray;
+                    e.target.style.color = themeSneakers.silverLining;
                     e.target.style.boxShadow = 'none';
                   }
                 }}
@@ -495,12 +990,12 @@ const Sneakers = () => {
                     height: '12px',
                     background:
                       option === 'all'
-                        ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm4 0h-2v-2h2v2zM9 10V8h6v2H9z"/></svg>')`
+                        ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${themeSneakers.neonBlue}"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9v-2h2v2zm4 0h-2v-2h2v2zM9 10V8h6v2H9z"/></svg>')`
                         : option === 'men'
-                        ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16v4h4a8 8 0 0 1-4 12z"/></svg>')`
-                        : option === 'women'
-                        ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16v2h2v2h-2v2h-2v-2H8v-2h2V4a8 8 0 0 1 2 16z"/></svg>')`
-                        : `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14v12"/></svg>')`,
+                          ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${themeSneakers.neonBlue}"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16v4h4a8 8 0 0 1-4 12z"/></svg>')`
+                          : option === 'women'
+                            ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${themeSneakers.neonBlue}"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 18a8 8 0 1 1 0-16v2h2v2h-2v2h-2v-2H8v-2h2V4a8 8 0 0 1 2 16z"/></svg>')`
+                            : `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${themeSneakers.neonBlue}"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14v12"/></svg>')`,
                     backgroundSize: 'contain',
                     transition: 'transform 0.3s ease',
                   }}
@@ -513,7 +1008,7 @@ const Sneakers = () => {
                       right: '8px',
                       width: '6px',
                       height: '6px',
-                      background: theme.heistRed,
+                      background: themeSneakers.heistRed,
                       borderRadius: '50%',
                       animation: 'pulse 1.5s infinite',
                     }}
@@ -526,14 +1021,14 @@ const Sneakers = () => {
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span
             style={{
-              color: theme.silverLining,
+              color: themeSneakers.silverLining,
               fontWeight: '500',
               marginBottom: '10px',
               fontFamily: '"Courier New", monospace',
               fontSize: '14px',
               letterSpacing: '1px',
               textTransform: 'uppercase',
-              borderLeft: `3px solid ${theme.neonBlue}`,
+              borderLeft: `3px solid ${themeSneakers.neonBlue}`,
               paddingLeft: '8px',
             }}
           >
@@ -545,9 +1040,9 @@ const Sneakers = () => {
                 key={option}
                 onClick={() => handleSourceFilterChange(option)}
                 style={{
-                  background: sourceFilter === option ? theme.stealthGray : 'transparent',
-                  color: sourceFilter === option ? theme.neonBlue : theme.silverLining,
-                  border: `1px solid ${theme.stealthGray}`,
+                  background: sourceFilter === option ? themeSneakers.stealthGray : 'transparent',
+                  color: sourceFilter === option ? themeSneakers.neonBlue : themeSneakers.silverLining,
+                  border: `1px solid ${themeSneakers.stealthGray}`,
                   borderRadius: '6px',
                   padding: '8px 12px',
                   cursor: 'pointer',
@@ -563,15 +1058,15 @@ const Sneakers = () => {
                 }}
                 onMouseEnter={(e) => {
                   if (sourceFilter !== option) {
-                    e.target.style.borderColor = theme.neonBlue;
-                    e.target.style.color = theme.neonBlue;
-                    e.target.style.boxShadow = `inset 0 0 8px ${theme.neonBlue}20`;
+                    e.target.style.borderColor = themeSneakers.neonBlue;
+                    e.target.style.color = themeSneakers.neonBlue;
+                    e.target.style.boxShadow = `inset 0 0 8px ${themeSneakers.neonBlue}20`;
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (sourceFilter !== option) {
-                    e.target.style.borderColor = theme.stealthGray;
-                    e.target.style.color = theme.silverLining;
+                    e.target.style.borderColor = themeSneakers.stealthGray;
+                    e.target.style.color = themeSneakers.silverLining;
                     e.target.style.boxShadow = 'none';
                   }
                 }}
@@ -583,10 +1078,10 @@ const Sneakers = () => {
                     height: '12px',
                     background:
                       option === 'all'
-                        ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14v12"/></svg>')`
+                        ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${themeSneakers.neonBlue}"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14v12"/></svg>')`
                         : option === 'amazon'
-                        ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>')`
-                        : `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 16H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V8h12v2z"/></svg>')`,
+                          ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${themeSneakers.neonBlue}"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>')`
+                          : `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${themeSneakers.neonBlue}"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 16H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V8h12v2z"/></svg>')`,
                     backgroundSize: 'contain',
                     transition: 'transform 0.3s ease',
                   }}
@@ -599,7 +1094,7 @@ const Sneakers = () => {
                       right: '8px',
                       width: '6px',
                       height: '6px',
-                      background: theme.heistRed,
+                      background: themeSneakers.heistRed,
                       borderRadius: '50%',
                       animation: 'pulse 1.5s infinite',
                     }}
@@ -617,9 +1112,9 @@ const Sneakers = () => {
               100% { transform: scale(1); opacity: 1; }
             }
             @keyframes neonPulse {
-              0% { text-shadow: 0 0 8px ${theme.neonBlue}80; }
-              50% { text-shadow: 0 0 12px ${theme.neonBlue}ff; }
-              100% { text-shadow: 0 0 8px ${theme.neonBlue}80; }
+              0% { text-shadow: 0 0 8px ${themeSneakers.neonBlue}80; }
+              50% { text-shadow: 0 0 12px ${themeSneakers.neonBlue}ff; }
+              100% { text-shadow: 0 0 8px ${themeSneakers.neonBlue}80; }
             }
           `}
         </style>
@@ -631,7 +1126,7 @@ const Sneakers = () => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          background: theme.midnightBlack,
+          background: themeSneakers.midnightBlack,
           margin: '0 auto',
           padding: '20px',
           boxSizing: 'border-box',
@@ -641,7 +1136,7 @@ const Sneakers = () => {
           <div style={{ textAlign: 'center', padding: '30px', width: '100%' }}>
             <p
               style={{
-                color: theme.neonBlue,
+                color: themeSneakers.neonBlue,
                 fontSize: getResponsiveValue('18px', '20px'),
                 fontFamily: '"Courier New", monospace',
                 transition: 'opacity 0.3s ease',
@@ -653,7 +1148,7 @@ const Sneakers = () => {
         ) : error ? (
           <p
             style={{
-              color: theme.heistRed,
+              color: themeSneakers.heistRed,
               fontSize: getResponsiveValue('18px', '20px'),
               textAlign: 'center',
               padding: '30px',
@@ -691,12 +1186,13 @@ const Sneakers = () => {
                     sources={product.sources}
                     productLinks={product.productLinks}
                     prices={product.prices}
+                    onProductClick={handleProductClick}
                   />
                 ))
               ) : (
                 <p
                   style={{
-                    color: theme.silverLining,
+                    color: themeSneakers.silverLining,
                     fontSize: getResponsiveValue('16px', '18px'),
                     textAlign: 'center',
                     width: '100%',
@@ -727,20 +1223,20 @@ const Sneakers = () => {
                   disabled={currentPage === 1}
                   style={{
                     padding: '8px 12px',
-                    border: `1px solid ${theme.neonBlue}`,
+                    border: `1px solid ${themeSneakers.neonBlue}`,
                     borderRadius: '12px',
-                    background: theme.midnightBlack,
-                    color: theme.neonBlue,
+                    background: themeSneakers.midnightBlack,
+                    color: themeSneakers.neonBlue,
                     cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                     fontFamily: '"Courier New", monospace',
                     fontSize: '14px',
                     transition: 'background 0.3s ease, color 0.3s ease',
                   }}
                   onMouseEnter={(e) => {
-                    if (currentPage !== 1) e.target.style.background = theme.heistRed;
+                    if (currentPage !== 1) e.target.style.background = themeSneakers.heistRed;
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = theme.midnightBlack;
+                    e.target.style.background = themeSneakers.midnightBlack;
                   }}
                 >
                   First
@@ -750,20 +1246,20 @@ const Sneakers = () => {
                   disabled={currentPage === 1}
                   style={{
                     padding: '8px 12px',
-                    border: `1px solid ${theme.neonBlue}`,
+                    border: `1px solid ${themeSneakers.neonBlue}`,
                     borderRadius: '12px',
-                    background: theme.midnightBlack,
-                    color: theme.neonBlue,
+                    background: themeSneakers.midnightBlack,
+                    color: themeSneakers.neonBlue,
                     cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                     fontFamily: '"Courier New", monospace',
                     fontSize: '14px',
                     transition: 'background 0.3s ease, color 0.3s ease',
                   }}
                   onMouseEnter={(e) => {
-                    if (currentPage !== 1) e.target.style.background = theme.heistRed;
+                    if (currentPage !== 1) e.target.style.background = themeSneakers.heistRed;
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = theme.midnightBlack;
+                    e.target.style.background = themeSneakers.midnightBlack;
                   }}
                 >
                   Previous
@@ -774,20 +1270,20 @@ const Sneakers = () => {
                   disabled={currentPage === totalPages}
                   style={{
                     padding: '8px 12px',
-                    border: `1px solid ${theme.neonBlue}`,
+                    border: `1px solid ${themeSneakers.neonBlue}`,
                     borderRadius: '12px',
-                    background: theme.midnightBlack,
-                    color: theme.neonBlue,
+                    background: themeSneakers.midnightBlack,
+                    color: themeSneakers.neonBlue,
                     cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                     fontFamily: '"Courier New", monospace',
                     fontSize: '14px',
                     transition: 'background 0.3s ease, color 0.3s ease',
                   }}
                   onMouseEnter={(e) => {
-                    if (currentPage !== totalPages) e.target.style.background = theme.heistRed;
+                    if (currentPage !== totalPages) e.target.style.background = themeSneakers.heistRed;
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = theme.midnightBlack;
+                    e.target.style.background = themeSneakers.midnightBlack;
                   }}
                 >
                   Next
@@ -797,20 +1293,20 @@ const Sneakers = () => {
                   disabled={currentPage === totalPages}
                   style={{
                     padding: '8px 12px',
-                    border: `1px solid ${theme.neonBlue}`,
+                    border: `1px solid ${themeSneakers.neonBlue}`,
                     borderRadius: '12px',
-                    background: theme.midnightBlack,
-                    color: theme.neonBlue,
+                    background: themeSneakers.midnightBlack,
+                    color: themeSneakers.neonBlue,
                     cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                     fontFamily: '"Courier New", monospace',
                     fontSize: '14px',
                     transition: 'background 0.3s ease, color 0.3s ease',
                   }}
                   onMouseEnter={(e) => {
-                    if (currentPage !== totalPages) e.target.style.background = theme.heistRed;
+                    if (currentPage !== totalPages) e.target.style.background = themeSneakers.heistRed;
                   }}
                   onMouseLeave={(e) => {
-                    e.target.style.background = theme.midnightBlack;
+                    e.target.style.background = themeSneakers.midnightBlack;
                   }}
                 >
                   Last
@@ -820,6 +1316,11 @@ const Sneakers = () => {
           </>
         )}
       </div>
+
+      {/* Render ProductDetails Popup */}
+      {selectedProduct && (
+        <ProductDetails product={selectedProduct} onClose={handleClosePopup} />
+      )}
     </div>
   );
 };

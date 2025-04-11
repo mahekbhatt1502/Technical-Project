@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import supabase from './supabase.js';
 import { useNavigate } from 'react-router-dom';
 
-// Money Heist Theme Palette
+// Money Heist Theme Palette (unchanged)
 const theme = {
   midnightBlack: '#2C2C2C',
   neonBlue: '#00E5FF',
@@ -10,9 +10,18 @@ const theme = {
   silverLining: '#D9D9D9',
   stealthGray: '#5A5A5A',
   shadow: 'rgba(0, 0, 0, 0.4)',
+  darkGray: '#2C2C2C',
+  subtleCyan: '#A3D8F4',
+  accentRed: '#CC3333',
+  silver: '#D9D8D9',
+  gradient: 'linear-gradient(135deg, #333333 0%, #1A1A1A 100%)',
+  subtleGlow: 'rgba(163, 216, 244, 0.05)',
+  backdrop: 'rgba(0, 0, 0, 0.6)',
+  glow: '0 0 10px rgba(163, 216, 244, 0.3)',
+  cardBackground: '#3A3A3A',
 };
 
-// List of Smartphone Brands
+// List of Smartphone Brands (unchanged)
 const smartphoneBrands = [
   "Apple", "MOTOROLA", "Samsung", "OnePlus", "Xiaomi", "Realme", "Vivo",
   "Asus", "Motorola", "Nokia", "Sony", "Huawei", "iQOO", "Nothing",
@@ -20,15 +29,15 @@ const smartphoneBrands = [
   "HONOR", "SAMSUNG", "Poco", "vivo", "realme", "OPPO", "Tecno", "iPhone"
 ];
 
-// Keywords to detect smartphones
+// Keywords to detect smartphones (unchanged)
 const smartphoneKeywords = ["RAM", "ROM", "Battery", "Camera", "Display", "Processor", "Chipset", "Expandable", "5G"];
 const excludedKeywords = ["charger", "charging", "cable", "adapter", "power bank", "dock", "EarPods"];
 
-// Utility function for responsive values
+// Utility function for responsive values (unchanged)
 const getResponsiveValue = (mobile, desktop) =>
   window.innerWidth <= 768 ? mobile : desktop;
 
-// Debounce utility
+// Debounce utility (unchanged)
 const debounce = (func, delay) => {
   let timeoutId;
   return (...args) => {
@@ -37,7 +46,7 @@ const debounce = (func, delay) => {
   };
 };
 
-// Product Card Component
+// Modified Product Card Component with hover effect on name
 const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductClick }) => {
   const cardWidth = '200px';
   const imageHeight = '200px';
@@ -103,6 +112,13 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
+          transition: 'color 0.3s ease', // Added transition for hover effect
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.color = theme.neonBlue; // White to blue on hover
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.color = theme.silverLining; // Back to white
         }}
       >
         {name}
@@ -147,7 +163,461 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
   );
 };
 
-// Main Smartphones Component
+// Recommended Product Card (unchanged)
+const RecommendedProductCard = ({ name = 'Product' }) => {
+  return (
+    <div
+      style={{
+        background: theme.cardBackground,
+        border: `1px solid ${theme.darkGray}`,
+        borderRadius: '6px',
+        padding: '8px',
+        boxShadow: `0 2px 6px ${theme.shadow}`,
+        transition: 'all 0.2s ease-in-out',
+        width: getResponsiveValue('90px', '140px'),
+        height: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        boxSizing: 'border-box',
+        margin: '0 0 10px 0',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform = 'scale(1.03)';
+        e.currentTarget.style.boxShadow = `0 4px 10px ${theme.shadow}`;
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform = 'scale(1)';
+        e.currentTarget.style.boxShadow = `0 2px 6px ${theme.shadow}`;
+      }}
+      onTouchStart={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
+      onTouchEnd={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+    >
+      <div
+        style={{
+          width: '100%',
+          height: getResponsiveValue('70px', '100px'),
+          background: '#555',
+          borderRadius: '4px',
+          marginBottom: '6px',
+        }}
+      />
+      <div
+        style={{
+          color: theme.silver,
+          fontSize: '11px',
+          textAlign: 'center',
+          overflow: 'hidden',
+          whiteSpace: 'nowrap',
+          textOverflow: 'ellipsis',
+          width: '100%',
+        }}
+      >
+        {name}
+      </div>
+    </div>
+  );
+};
+
+// Product Details Popup Component (unchanged from previous version)
+const ProductDetailsPopup = ({ isOpen, onClose, name, imageUrl, prices, sources, productLinks }) => {
+  const [fetchedDescription, setFetchedDescription] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showFirstTwo, setShowFirstTwo] = useState(true);
+
+  useEffect(() => {
+    const fetchProductDetails = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        let amazonQuery = supabase
+          .from('Amazon')
+          .select('Description')
+          .eq('Name', name)
+          .eq('Image Link', imageUrl);
+        let flipkartQuery = supabase
+          .from('Flipkart')
+          .select('Description')
+          .eq('Name', name)
+          .eq('Image Link', imageUrl);
+
+        const [amazonRes, flipkartRes] = await Promise.all([amazonQuery, flipkartQuery]);
+
+        if (amazonRes.error) throw new Error(`Amazon fetch error: ${amazonRes.error.message}`);
+        if (flipkartRes.error) throw new Error(`Flipkart fetch error: ${flipkartRes.error.message}`);
+
+        const amazonData = amazonRes.data || [];
+        const flipkartData = flipkartRes.data || [];
+
+        const fetchedDesc =
+          amazonData.length > 0
+            ? amazonData[0].Description
+            : flipkartData.length > 0
+              ? flipkartData[0].Description
+              : 'No description available';
+
+        setFetchedDescription(fetchedDesc);
+      } catch (err) {
+        console.error('Error fetching product details:', err);
+        setError('Failed to fetch product details.');
+        setFetchedDescription('No description available');
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (isOpen) fetchProductDetails();
+  }, [isOpen, name, imageUrl]);
+
+  const displayDescription = fetchedDescription;
+
+  const recommendedProducts = [
+    { name: 'Product 1' },
+    { name: 'Product 2' },
+    { name: 'Product 3' },
+    { name: 'Product 4' },
+  ];
+
+  const handleToggleProducts = () => {
+    setShowFirstTwo(!showFirstTwo);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        background: 'rgba(0, 0, 0, 0.85)',
+        zIndex: 1000,
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        animation: 'fadeIn 0.3s ease-in-out',
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: '#1C1C1C',
+          width: '90vw',
+          maxWidth: '1200px',
+          height: 'auto',
+          maxHeight: '90vh',
+          borderRadius: '12px',
+          boxShadow: `0 10px 30px rgba(0, 0, 0, 0.5)`,
+          display: 'flex',
+          flexDirection: getResponsiveValue('column', 'row'),
+          alignItems: 'stretch',
+          overflow: 'hidden',
+          position: 'relative',
+          zIndex: 1001,
+          border: `1px solid ${theme.stealthGray}`,
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          style={{
+            position: 'absolute',
+            top: '15px',
+            right: '15px',
+            background: 'transparent',
+            border: `1px solid ${theme.silverLining}`,
+            color: theme.silverLining,
+            cursor: 'pointer',
+            fontSize: '24px',
+            width: '40px',
+            height: '40px',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.3s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.target.style.background = theme.heistRed;
+            e.target.style.color = '#1C1C1C';
+            e.target.style.borderColor = theme.heistRed;
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.background = 'transparent';
+            e.target.style.color = theme.silverLining;
+            e.target.style.borderColor = theme.silverLining;
+          }}
+        >
+          ×
+        </button>
+
+        <div
+          style={{
+            width: getResponsiveValue('100%', '65%'),
+            padding: '25px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            background: '#1C1C1C',
+            overflowY: 'auto',
+            boxSizing: 'border-box',
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: '400px',
+              marginBottom: '20px',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              position: 'relative',
+              border: `1px solid ${theme.stealthGray}`,
+            }}
+          >
+            <img
+              src={imageUrl || 'https://via.placeholder.com/300?text=No+Image'}
+              alt={name}
+              style={{
+                width: '100%',
+                height: 'auto',
+                maxHeight: '300px',
+                objectFit: 'contain',
+                borderRadius: '8px',
+              }}
+              onError={(e) => (e.target.src = 'https://via.placeholder.com/300?text=No+Image')}
+            />
+          </div>
+
+          <h2
+            style={{
+              color: theme.silverLining,
+              fontSize: getResponsiveValue('22px', '28px'),
+              fontWeight: '700',
+              marginBottom: '15px',
+              textAlign: 'center',
+              letterSpacing: '1px',
+              fontFamily: '"Courier New", monospace',
+            }}
+          >
+            {name}
+          </h2>
+
+          <div
+            style={{
+              color: theme.silverLining,
+              fontSize: '15px',
+              lineHeight: '1.6',
+              marginBottom: '20px',
+              overflowY: 'auto',
+              maxHeight: '180px',
+              textAlign: 'center',
+              width: '100%',
+              maxWidth: '400px',
+            }}
+          >
+            {loading ? (
+              <p style={{ color: theme.neonBlue }}>
+                Loading...
+              </p>
+            ) : error ? (
+              <p style={{ color: theme.heistRed }}>{error}</p>
+            ) : (
+              <p>{displayDescription}</p>
+            )}
+          </div>
+
+          {prices && prices.length > 0 && (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr',
+                gap: '10px',
+                width: '100%',
+                maxWidth: '350px',
+              }}
+            >
+              {prices.map((priceObj, index) => (
+                <a
+                  key={index}
+                  href={productLinks[index] || '#'}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '12px 20px',
+                    background: '#252525',
+                    color: theme.silverLining,
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    transition: 'all 0.3s ease',
+                    border: `1px solid ${theme.stealthGray}`,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = theme.neonBlue;
+                    e.target.style.color = '#1C1C1C';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#252525';
+                    e.target.style.color = theme.silverLining;
+                  }}
+                >
+                  <span>₹{priceObj.price}.00</span>
+                  <span>{sources[index]}</span>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div
+          style={{
+            width: getResponsiveValue('100%', '35%'),
+            padding: '25px',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            background: '#1C1C1C',
+            overflowY: 'auto',
+            boxSizing: 'border-box',
+            borderLeft: getResponsiveValue('none', `1px solid ${theme.stealthGray}`),
+          }}
+        >
+          <h3
+            style={{
+              color: theme.silverLining,
+              fontSize: getResponsiveValue('20px', '24px'),
+              fontWeight: '700',
+              marginBottom: '20px',
+              letterSpacing: '1px',
+              fontFamily: '"Courier New", monospace',
+            }}
+          >
+            RECOMMENDED
+          </h3>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: getResponsiveValue('repeat(2, 1fr)', '1fr'),
+              gap: '15px',
+              width: '100%',
+              justifyItems: 'center',
+              flexGrow: 1,
+            }}
+          >
+            {(showFirstTwo ? recommendedProducts.slice(0, 2) : recommendedProducts.slice(2, 4)).map(
+              (product, index) => (
+                <div
+                  key={index}
+                  style={{
+                    background: '#252525',
+                    border: `1px solid ${theme.stealthGray}`,
+                    borderRadius: '8px',
+                    padding: '12px',
+                    width: getResponsiveValue('140px', '200px'),
+                    height: getResponsiveValue('180px', '260px'),
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxSizing: 'border-box',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = '#2F2F2F';
+                    e.target.style.borderColor = theme.neonBlue;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = '#252525';
+                    e.target.style.borderColor = theme.stealthGray;
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '100%',
+                      height: getResponsiveValue('120px', '180px'),
+                      background: '#333333',
+                      borderRadius: '6px',
+                      marginBottom: '12px',
+                    }}
+                  />
+                  <div
+                    style={{
+                      color: theme.silverLining,
+                      fontSize: getResponsiveValue('14px', '16px'),
+                      textAlign: 'center',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      width: '100%',
+                      transition: 'color 0.3s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.target.style.color = theme.neonBlue;
+                    }}
+                    onMouseLeave={(e) => {
+                      e.target.style.color = theme.silverLining;
+                    }}
+                  >
+                    {product.name}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+          {recommendedProducts.length > 2 && (
+            <button
+              onClick={handleToggleProducts}
+              style={{
+                marginTop: '15px',
+                padding: '10px 25px',
+                background: '#252525',
+                color: theme.silverLining,
+                border: `1px solid ${theme.stealthGray}`,
+                borderRadius: '20px',
+                fontSize: '14px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                fontFamily: '"Courier New", monospace',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = theme.neonBlue;
+                e.target.style.color = '#1C1C1C';
+                e.target.style.borderColor = theme.neonBlue;
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = '#252525';
+                e.target.style.color = theme.silverLining;
+                e.target.style.borderColor = theme.stealthGray;
+              }}
+            >
+              {showFirstTwo ? '▼' : '▲'}
+            </button>
+          )}
+        </div>
+      </div>
+
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+        `}
+      </style>
+    </div>
+  );
+};
+
+// Main Smartphones Component (unchanged)
 const Smartphones = () => {
   const navigate = useNavigate();
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -157,7 +627,8 @@ const Smartphones = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 100; // 4 columns × 25 rows
+  const [popupData, setPopupData] = useState(null);
+  const productsPerPage = 100;
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
@@ -215,7 +686,6 @@ const Smartphones = () => {
             if (!product.sources.includes(source)) {
               product.sources.push(source);
               product.productLinks.push(item['Product Link']);
-              product.price = parseFloat(item.Price)
               product.prices.push({ source, price: item.Price });
             }
           });
@@ -225,7 +695,7 @@ const Smartphones = () => {
         processData(flipkartData, 'Flipkart');
 
         let allProducts = Array.from(productMap.values());
-        allProducts = [...allProducts].sort((a, b) => a.price - b.price)
+        allProducts = [...allProducts].sort((a, b) => a.prices[0]?.price - b.prices[0]?.price || 0);
         setTotalPages(Math.ceil(allProducts.length / productsPerPage));
 
         const from = (currentPage - 1) * productsPerPage;
@@ -263,9 +733,11 @@ const Smartphones = () => {
   };
 
   const handleProductClick = (name, imageUrl, prices, sources, productLinks) => {
-    navigate(`/product/${encodeURIComponent(name)}`, {
-      state: { name, imageUrl, prices, sources, productLinks }
-    });
+    setPopupData({ name, imageUrl, prices, sources, productLinks });
+  };
+
+  const handleClosePopup = () => {
+    setPopupData(null);
   };
 
   const renderPageNumbers = () => {
@@ -321,6 +793,7 @@ const Smartphones = () => {
         boxSizing: 'border-box',
         display: 'flex',
         flexWrap: 'wrap',
+        position: 'relative',
       }}
     >
       {/* Sidebar - Filters */}
@@ -333,7 +806,6 @@ const Smartphones = () => {
           flexDirection: 'column',
         }}
       >
-        {/* PRICIFY, Smartphones Title, and Search Bar */}
         <div
           style={{
             display: 'flex',
@@ -343,7 +815,6 @@ const Smartphones = () => {
             marginBottom: '20px',
           }}
         >
-          {/* PRICIFY Logo */}
           <div
             onClick={() => navigate('/')}
             style={{
@@ -368,8 +839,6 @@ const Smartphones = () => {
               PRICIFY
             </h1>
           </div>
-
-          {/* Smartphones Title */}
           <h1
             style={{
               color: theme.silverLining,
@@ -386,8 +855,6 @@ const Smartphones = () => {
           >
             SMARTPHONES
           </h1>
-
-          {/* Search Bar */}
           <input
             type="text"
             onChange={handleSearch}
@@ -415,8 +882,6 @@ const Smartphones = () => {
             }}
           />
         </div>
-
-        {/* Source Filter */}
         <div style={{ display: 'flex', flexDirection: 'column' }}>
           <span
             style={{
@@ -503,8 +968,6 @@ const Smartphones = () => {
             ))}
           </div>
         </div>
-
-        {/* Inline CSS for Animations */}
         <style>
           {`
             @keyframes pulse {
@@ -535,17 +998,11 @@ const Smartphones = () => {
           boxSizing: 'border-box',
         }}
       >
-        {/* Main Content */}
-        <div style={{ position: 'relative', zIndex: 1, width: '100%' }}>
-          {/* Removed Header Section */}
-        </div>
-
-        {/* Product Grid */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '30px', width: '100%' }}>
             <p
               style={{
-                color: theme.neonBlue, // Fixed typo from 'newBlue' to 'neonBlue'
+                color: theme.neonBlue,
                 fontSize: getResponsiveValue('18px', '20px'),
                 fontFamily: '"Courier New", monospace',
                 transition: 'opacity 0.3s ease',
@@ -573,8 +1030,8 @@ const Smartphones = () => {
               style={{
                 display: 'grid',
                 gridTemplateColumns: getResponsiveValue(
-                  'repeat(2, minmax(150px, 1fr))', // 2 columns on mobile
-                  'repeat(4, minmax(200px, 1fr))'  // 4 columns on desktop
+                  'repeat(2, minmax(150px, 1fr))',
+                  'repeat(4, minmax(200px, 1fr))'
                 ),
                 gap: getResponsiveValue('15px', '20px'),
                 width: '100%',
@@ -614,7 +1071,6 @@ const Smartphones = () => {
               )}
             </div>
 
-            {/* Pagination Footer */}
             {totalPages > 1 && (
               <div
                 style={{
@@ -726,6 +1182,19 @@ const Smartphones = () => {
           </>
         )}
       </div>
+
+      {/* Popup Overlay */}
+      {popupData && (
+        <ProductDetailsPopup
+          isOpen={!!popupData}
+          onClose={handleClosePopup}
+          name={popupData.name}
+          imageUrl={popupData.imageUrl}
+          prices={popupData.prices}
+          sources={popupData.sources}
+          productLinks={popupData.productLinks}
+        />
+      )}
     </div>
   );
 };

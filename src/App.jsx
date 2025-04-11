@@ -6,7 +6,8 @@ import Shoes from './components/Shoes';
 import TShirt from './components/Tshirt';
 import Smartphone from './components/smartphone';
 import ProductDetails from './components/ProductDetails';
-function App() {
+function App() 
+{
     return (
         <Router>
             <Routes>
