@@ -15,6 +15,7 @@ const theme = {
 // Navbar Component: The Heist Control Panel
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 50);
@@ -22,7 +23,11 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const menuItems = ['About Us', 'Contact', 'Reviews'];
+  const menuItems = [
+    { label: 'About Us', path: '/about-us' },
+    { label: 'Contact', path: '#' },
+    { label: 'Reviews', path: '#' },
+  ];
 
   return (
     <nav style={{
@@ -82,7 +87,7 @@ const Navbar = () => {
       }}>
         {menuItems.map((item, index) => (
           <span
-            key={item}
+            key={item.label}
             style={{
               color: theme.silverLining,
               fontFamily: '"Courier New", monospace',
@@ -98,6 +103,7 @@ const Navbar = () => {
               background: `${theme.stealthGray}20`,
               textShadow: `0 0 5px ${theme.neonBlue}40`,
             }}
+            onClick={() => navigate(item.path)}
             onMouseEnter={(e) => {
               e.target.style.color = theme.neonBlue;
               e.target.style.textShadow = `0 0 10px ${theme.neonBlue}, 0 0 15px ${theme.neonBlue}80`;
@@ -111,7 +117,7 @@ const Navbar = () => {
               e.target.style.background = `${theme.stealthGray}20`;
             }}
           >
-            {item}
+            {item.label}
             <span
               style={{
                 position: 'absolute',
@@ -351,6 +357,8 @@ const CategoryCard = ({ title, imageUrl, position }) => {
 
 // Footer: The Getaway
 const Footer = () => {
+  const navigate = useNavigate();
+
   return (
     <footer style={{
       background: theme.midnightBlack,
@@ -369,10 +377,18 @@ const Footer = () => {
         gap: '25px',
         marginBottom: '20px',
       }}>
-        {['About Us', 'Contact', 'Privacy Policy'].map((item) => (
+        {[
+          { label: 'About Us', path: '/about-us' },
+          { label: 'Contact', path: '#' },
+          { label: 'Privacy Policy', path: '#' },
+        ].map((item) => (
           <a
-            key={item}
-            href="#"
+            key={item.label}
+            href={item.path}
+            onClick={(e) => {
+              e.preventDefault();
+              navigate(item.path);
+            }}
             style={{
               color: theme.silverLining,
               textDecoration: 'none',
@@ -392,7 +408,7 @@ const Footer = () => {
               e.target.style.transform = 'scale(1)';
             }}
           >
-            {item}
+            {item.label}
           </a>
         ))}
       </div>
@@ -595,7 +611,7 @@ const HomePage = () => {
             <CategoryCard
               key={category.title}
               title={category.title}
-              imageUrl={category.imageUrl}
+              imageUrl={category.title}
               position={index}
             />
           ))}

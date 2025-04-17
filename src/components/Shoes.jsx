@@ -40,12 +40,12 @@ const debounce = (func, delay) => {
 };
 
 // Product Card Component with hover effect on name
-const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductClick }) => {
+const ProductCard = ({ name, imageUrl, pid, prices, sources, productLinks, onProductClick }) => {
   const cardWidth = '200px';
   const imageHeight = '200px';
 
   const handleClick = () => {
-    onProductClick({ name, imageUrl, prices, sources, productLinks });
+    onProductClick({ name, imageUrl, pid, prices, sources, productLinks });
   };
 
   return (
@@ -156,18 +156,18 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
 };
 
 // Enhanced Recommended Product Card for Popup with larger size and hover effect
-const RecommendedProductCard = ({ name = 'Product' }) => {
+const RecommendedProductCard = ({ name = 'Product', imageUrl, price, productLink }) => {
   return (
     <div
       style={{
         background: themePopup.cardBackground,
         border: `1px solid ${themePopup.darkGray}`,
         borderRadius: '6px',
-        padding: '12px', // Increased padding
+        padding: '12px',
         boxShadow: `0 2px 6px ${themePopup.shadow}`,
         transition: 'all 0.2s ease-in-out',
-        width: getResponsiveValue('140px', '200px'), // Increased width
-        height: getResponsiveValue('180px', '260px'), // Increased height
+        width: getResponsiveValue('140px', '200px'),
+        height: getResponsiveValue('180px', '260px'),
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -187,39 +187,66 @@ const RecommendedProductCard = ({ name = 'Product' }) => {
       onTouchStart={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
       onTouchEnd={(e) => (e.currentTarget.style.transform = 'scale(1)')}
     >
-      <div
+      <a
+        href={productLink}
+        target="_blank"
+        rel="noopener noreferrer"
         style={{
           width: '100%',
-          height: getResponsiveValue('120px', '180px'), // Increased image height
-          background: '#555',
+          height: getResponsiveValue('120px', '180px'),
           borderRadius: '4px',
-          marginBottom: '12px', // Adjusted margin
+          overflow: 'hidden',
+          marginBottom: '12px',
+          display: 'block',
         }}
-      />
+      >
+        <img
+          src={imageUrl}
+          alt={name}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            borderRadius: '4px',
+          }}
+          onError={(e) => (e.target.src = 'https://via.placeholder.com/200?text=No+Image')}
+        />
+      </a>
       <div
         style={{
           color: themePopup.silver,
-          fontSize: getResponsiveValue('14px', '16px'), // Increased font size
+          fontSize: getResponsiveValue('14px', '16px'),
           textAlign: 'center',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
           textOverflow: 'ellipsis',
           width: '100%',
-          transition: 'color 0.3s ease', // Added for hover effect
+          marginBottom: '8px',
+          transition: 'color 0.3s ease',
         }}
         onMouseEnter={(e) => {
-          e.target.style.color = themeSneakers.neonBlue; // White to blue on hover
+          e.target.style.color = themeSneakers.neonBlue;
         }}
         onMouseLeave={(e) => {
-          e.target.style.color = themePopup.silver; // Back to white
+          e.target.style.color = themePopup.silver;
         }}
       >
         {name}
       </div>
+      <div
+        style={{
+          color: themeSneakers.neonBlue,
+          fontSize: getResponsiveValue('12px', '14px'),
+          textAlign: 'center',
+          fontWeight: '600',
+          width: '100%',
+        }}
+      >
+        {price ? `₹${price}.00` : 'Price not available'}
+      </div>
     </div>
   );
 };
-
 // ProductDetails Popup Component with changes
  // Product Details Popup Component (aligned with Smartphones design)
 const ProductDetails = ({ product, onClose }) => {
@@ -227,6 +254,7 @@ const ProductDetails = ({ product, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showFirstTwo, setShowFirstTwo] = useState(true);
+  const [recommendProducts, setRecommendProducts] = useState([]);
 
   const {
     name = 'Unknown Product',
@@ -268,6 +296,15 @@ const ProductDetails = ({ product, onClose }) => {
               : 'No description available';
 
         setFetchedDescription(fetchedDesc);
+
+      // Fetch recommended products from external API
+      if (product?.pid) {
+        const res = await fetch(`https://cosine-recommendation.onrender.com/recommend/${product.pid}?top_n=10`);
+        if (!res.ok) throw new Error('Failed to fetch recommendations');
+        const recs = await res.json();
+        // console.log('278', recs);
+        setRecommendProducts(recs.recommendations); // this will be an array of PIDs
+      }
       } catch (err) {
         console.error('Error fetching product details:', err);
         setError('Failed to fetch product details.');
@@ -281,12 +318,8 @@ const ProductDetails = ({ product, onClose }) => {
 
   const displayDescription = fetchedDescription;
 
-  const recommendedProducts = [
-    { name: 'Sneaker 1' },
-    { name: 'Sneaker 2' },
-    { name: 'Sneaker 3' },
-    { name: 'Sneaker 4' },
-  ];
+  const recommendedProducts = recommendProducts;
+  // console.log('295', recommendedProducts )
 
   const handleToggleProducts = () => {
     setShowFirstTwo(!showFirstTwo);
@@ -507,75 +540,27 @@ const ProductDetails = ({ product, onClose }) => {
             RECOMMENDED
           </h3>
           <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: getResponsiveValue('repeat(2, 1fr)', '1fr'),
-              gap: '15px',
-              width: '100%',
-              justifyItems: 'center',
-              flexGrow: 1,
-            }}
-          >
-            {(showFirstTwo ? recommendedProducts.slice(0, 2) : recommendedProducts.slice(2, 4)).map(
-              (product, index) => (
-                <div
-                  key={index}
-                  style={{
-                    background: '#252525',
-                    border: `1px solid ${themeSneakers.stealthGray}`,
-                    borderRadius: '8px',
-                    padding: '12px',
-                    width: getResponsiveValue('140px', '200px'),
-                    height: getResponsiveValue('180px', '260px'),
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    boxSizing: 'border-box',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = '#2F2F2F';
-                    e.target.style.borderColor = themeSneakers.neonBlue;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = '#252525';
-                    e.target.style.borderColor = themeSneakers.stealthGray;
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '100%',
-                      height: getResponsiveValue('120px', '180px'),
-                      background: '#333333',
-                      borderRadius: '6px',
-                      marginBottom: '12px',
-                    }}
-                  />
-                  <div
-                    style={{
-                      color: themeSneakers.silverLining,
-                      fontSize: getResponsiveValue('14px', '16px'),
-                      textAlign: 'center',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      width: '100%',
-                      transition: 'color 0.3s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.color = themeSneakers.neonBlue;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.color = themeSneakers.silverLining;
-                    }}
-                  >
-                    {product.name}
-                  </div>
-                </div>
-              )
-            )}
-          </div>
+  style={{
+    display: 'grid',
+    gridTemplateColumns: getResponsiveValue('repeat(2, 1fr)', '1fr'),
+    gap: '15px',
+    width: '100%',
+    justifyItems: 'center',
+    flexGrow: 1,
+  }}
+>
+  {(showFirstTwo ? recommendedProducts.slice(0, 2) : recommendedProducts.slice(2, 4)).map(
+    (product, index) => (
+      <RecommendedProductCard
+        key={index}
+        name={product.Name}
+        imageUrl={product["Image Link"]}
+        price={product.Price}
+        productLink={product["Product Link"]}
+      />
+    )
+  )}
+</div>
           {recommendedProducts.length > 2 && (
             <button
               onClick={handleToggleProducts}
@@ -720,6 +705,7 @@ const Sneakers = () => {
           if (!acc[key]) {
             acc[key] = {
               Name: product.Name,
+              PID:product.PID,
               Description: product.Description,
               'Image Link': product['Image Link'],
               sources: [],
@@ -1183,6 +1169,7 @@ const Sneakers = () => {
                     key={index}
                     name={product.Name}
                     imageUrl={product['Image Link']}
+                    pid={product.PID}
                     sources={product.sources}
                     productLinks={product.productLinks}
                     prices={product.prices}

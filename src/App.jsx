@@ -6,8 +6,9 @@ import Shoes from './components/Shoes';
 import TShirt from './components/Tshirt';
 import Smartphone from './components/smartphone';
 import ProductDetails from './components/ProductDetails';
-function App() 
-{
+import AboutUs from './components/AboutUs'; 
+
+function App() {
     return (
         <Router>
             <Routes>
@@ -17,8 +18,10 @@ function App()
                 <Route path="/category/t-shirt" element={<TShirt />} />
                 <Route path="/category/smartphone" element={<Smartphone />} />
                 <Route path="/product/:name" element={<ProductDetails />} />
+                <Route path="/about-us" element={<AboutUs />} />
             </Routes>
         </Router>
     );
 }
+
 export default App;

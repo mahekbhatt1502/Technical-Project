@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import supabase from './supabase.js';
 import { useNavigate } from 'react-router-dom';
 
-// Money Heist Theme Palette (unchanged)
+// Money Heist Theme Palette
 const theme = {
   midnightBlack: '#2C2C2C',
   neonBlue: '#00E5FF',
@@ -21,7 +21,7 @@ const theme = {
   cardBackground: '#3A3A3A',
 };
 
-// List of Smartphone Brands (unchanged)
+// List of Smartphone Brands
 const smartphoneBrands = [
   "Apple", "MOTOROLA", "Samsung", "OnePlus", "Xiaomi", "Realme", "Vivo",
   "Asus", "Motorola", "Nokia", "Sony", "Huawei", "iQOO", "Nothing",
@@ -29,15 +29,15 @@ const smartphoneBrands = [
   "HONOR", "SAMSUNG", "Poco", "vivo", "realme", "OPPO", "Tecno", "iPhone"
 ];
 
-// Keywords to detect smartphones (unchanged)
+// Keywords to detect smartphones
 const smartphoneKeywords = ["RAM", "ROM", "Battery", "Camera", "Display", "Processor", "Chipset", "Expandable", "5G"];
 const excludedKeywords = ["charger", "charging", "cable", "adapter", "power bank", "dock", "EarPods"];
 
-// Utility function for responsive values (unchanged)
+// Utility function for responsive values
 const getResponsiveValue = (mobile, desktop) =>
   window.innerWidth <= 768 ? mobile : desktop;
 
-// Debounce utility (unchanged)
+// Debounce utility
 const debounce = (func, delay) => {
   let timeoutId;
   return (...args) => {
@@ -46,13 +46,13 @@ const debounce = (func, delay) => {
   };
 };
 
-// Modified Product Card Component with hover effect on name
-const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductClick }) => {
+// Product Card Component
+const ProductCard = ({ name, imageUrl, pid, prices, sources, productLinks, onProductClick }) => {
   const cardWidth = '200px';
   const imageHeight = '200px';
 
   const handleClick = () => {
-    onProductClick(name, imageUrl, prices, sources, productLinks);
+    onProductClick({ name, imageUrl, pid, prices, sources, productLinks });
   };
 
   return (
@@ -112,13 +112,13 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
-          transition: 'color 0.3s ease', // Added transition for hover effect
+          transition: 'color 0.3s ease',
         }}
         onMouseEnter={(e) => {
-          e.target.style.color = theme.neonBlue; // White to blue on hover
+          e.target.style.color = theme.neonBlue;
         }}
         onMouseLeave={(e) => {
-          e.target.style.color = theme.silverLining; // Back to white
+          e.target.style.color = theme.silverLining;
         }}
       >
         {name}
@@ -163,19 +163,19 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
   );
 };
 
-// Recommended Product Card (unchanged)
-const RecommendedProductCard = ({ name = 'Product' }) => {
+// Recommended Product Card
+const RecommendedProductCard = ({ name = 'Product', imageUrl, price, productLink }) => {
   return (
     <div
       style={{
         background: theme.cardBackground,
         border: `1px solid ${theme.darkGray}`,
         borderRadius: '6px',
-        padding: '8px',
+        padding: '12px',
         boxShadow: `0 2px 6px ${theme.shadow}`,
         transition: 'all 0.2s ease-in-out',
-        width: getResponsiveValue('90px', '140px'),
-        height: 'auto',
+        width: getResponsiveValue('140px', '200px'),
+        height: getResponsiveValue('180px', '260px'),
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -195,38 +195,83 @@ const RecommendedProductCard = ({ name = 'Product' }) => {
       onTouchStart={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
       onTouchEnd={(e) => (e.currentTarget.style.transform = 'scale(1)')}
     >
-      <div
+      <a
+        href={productLink}
+        target="_blank"
+        rel="noopener noreferrer"
         style={{
           width: '100%',
-          height: getResponsiveValue('70px', '100px'),
-          background: '#555',
+          height: getResponsiveValue('120px', '180px'),
           borderRadius: '4px',
-          marginBottom: '6px',
+          overflow: 'hidden',
+          marginBottom: '12px',
+          display: 'block',
         }}
-      />
+      >
+        <img
+          src={imageUrl}
+          alt={name}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            borderRadius: '4px',
+          }}
+          onError={(e) => (e.target.src = 'https://via.placeholder.com/200?text=No+Image')}
+        />
+      </a>
       <div
         style={{
           color: theme.silver,
-          fontSize: '11px',
+          fontSize: getResponsiveValue('14px', '16px'),
           textAlign: 'center',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
           textOverflow: 'ellipsis',
           width: '100%',
+          marginBottom: '8px',
+          transition: 'color 0.3s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.color = theme.neonBlue;
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.color = theme.silver;
         }}
       >
         {name}
+      </div>
+      <div
+        style={{
+          color: theme.neonBlue,
+          fontSize: getResponsiveValue('12px', '14px'),
+          textAlign: 'center',
+          fontWeight: '600',
+          width: '100%',
+        }}
+      >
+        {price ? `₹${price}.00` : 'Price not available'}
       </div>
     </div>
   );
 };
 
-// Product Details Popup Component (unchanged from previous version)
-const ProductDetailsPopup = ({ isOpen, onClose, name, imageUrl, prices, sources, productLinks }) => {
+// Product Details Popup Component
+const ProductDetailsPopup = ({ isOpen, onClose, product }) => {
   const [fetchedDescription, setFetchedDescription] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showFirstTwo, setShowFirstTwo] = useState(true);
+  const [recommendProducts, setRecommendProducts] = useState([]);
+
+  const {
+    name = 'Unknown Product',
+    imageUrl = 'https://via.placeholder.com/300?text=No+Image',
+    pid,
+    prices = [],
+    sources = [],
+    productLinks = [],
+  } = product || {};
 
   useEffect(() => {
     const fetchProductDetails = async () => {
@@ -260,6 +305,14 @@ const ProductDetailsPopup = ({ isOpen, onClose, name, imageUrl, prices, sources,
               : 'No description available';
 
         setFetchedDescription(fetchedDesc);
+
+        // Fetch recommended products from external API
+        if (pid) {
+          const res = await fetch(`https://cosine-recommendation.onrender.com/recommend/${pid}?top_n=10`);
+          if (!res.ok) throw new Error('Failed to fetch recommendations');
+          const recs = await res.json();
+          setRecommendProducts(recs.recommendations || []);
+        }
       } catch (err) {
         console.error('Error fetching product details:', err);
         setError('Failed to fetch product details.');
@@ -269,16 +322,9 @@ const ProductDetailsPopup = ({ isOpen, onClose, name, imageUrl, prices, sources,
       }
     };
     if (isOpen) fetchProductDetails();
-  }, [isOpen, name, imageUrl]);
+  }, [isOpen, name, imageUrl, pid]);
 
   const displayDescription = fetchedDescription;
-
-  const recommendedProducts = [
-    { name: 'Product 1' },
-    { name: 'Product 2' },
-    { name: 'Product 3' },
-    { name: 'Product 4' },
-  ];
 
   const handleToggleProducts = () => {
     setShowFirstTwo(!showFirstTwo);
@@ -311,7 +357,7 @@ const ProductDetailsPopup = ({ isOpen, onClose, name, imageUrl, prices, sources,
           height: 'auto',
           maxHeight: '90vh',
           borderRadius: '12px',
-          boxShadow: `0 10px 30px rgba(0, 0, 0, 0.5)`,
+          boxShadow: `0 10px 30px ${theme.shadow}`,
           display: 'flex',
           flexDirection: getResponsiveValue('column', 'row'),
           alignItems: 'stretch',
@@ -379,7 +425,7 @@ const ProductDetailsPopup = ({ isOpen, onClose, name, imageUrl, prices, sources,
             }}
           >
             <img
-              src={imageUrl || 'https://via.placeholder.com/300?text=No+Image'}
+              src={imageUrl}
               alt={name}
               style={{
                 width: '100%',
@@ -420,9 +466,7 @@ const ProductDetailsPopup = ({ isOpen, onClose, name, imageUrl, prices, sources,
             }}
           >
             {loading ? (
-              <p style={{ color: theme.neonBlue }}>
-                Loading...
-              </p>
+              <p style={{ color: theme.neonBlue }}>Loading...</p>
             ) : error ? (
               <p style={{ color: theme.heistRed }}>{error}</p>
             ) : (
@@ -512,67 +556,19 @@ const ProductDetailsPopup = ({ isOpen, onClose, name, imageUrl, prices, sources,
               flexGrow: 1,
             }}
           >
-            {(showFirstTwo ? recommendedProducts.slice(0, 2) : recommendedProducts.slice(2, 4)).map(
+            {(showFirstTwo ? recommendProducts.slice(0, 2) : recommendProducts.slice(2, 4)).map(
               (product, index) => (
-                <div
+                <RecommendedProductCard
                   key={index}
-                  style={{
-                    background: '#252525',
-                    border: `1px solid ${theme.stealthGray}`,
-                    borderRadius: '8px',
-                    padding: '12px',
-                    width: getResponsiveValue('140px', '200px'),
-                    height: getResponsiveValue('180px', '260px'),
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    boxSizing: 'border-box',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = '#2F2F2F';
-                    e.target.style.borderColor = theme.neonBlue;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = '#252525';
-                    e.target.style.borderColor = theme.stealthGray;
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '100%',
-                      height: getResponsiveValue('120px', '180px'),
-                      background: '#333333',
-                      borderRadius: '6px',
-                      marginBottom: '12px',
-                    }}
-                  />
-                  <div
-                    style={{
-                      color: theme.silverLining,
-                      fontSize: getResponsiveValue('14px', '16px'),
-                      textAlign: 'center',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      width: '100%',
-                      transition: 'color 0.3s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.color = theme.neonBlue;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.color = theme.silverLining;
-                    }}
-                  >
-                    {product.name}
-                  </div>
-                </div>
+                  name={product.Name}
+                  imageUrl={product['Image Link']}
+                  price={product.Price}
+                  productLink={product['Product Link']}
+                />
               )
             )}
           </div>
-          {recommendedProducts.length > 2 && (
+          {recommendProducts.length > 2 && (
             <button
               onClick={handleToggleProducts}
               style={{
@@ -617,7 +613,7 @@ const ProductDetailsPopup = ({ isOpen, onClose, name, imageUrl, prices, sources,
   );
 };
 
-// Main Smartphones Component (unchanged)
+// Main Smartphones Component
 const Smartphones = () => {
   const navigate = useNavigate();
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
@@ -639,10 +635,10 @@ const Smartphones = () => {
 
         let amazonQuery = supabase
           .from('Amazon')
-          .select('Name, "Image Link", Description, "Product Link", Price');
+          .select('Name, "Image Link", Description, "Product Link", Price, PID');
         let flipkartQuery = supabase
           .from('Flipkart')
-          .select('Name, "Image Link", Description, "Product Link", Price')
+          .select('Name, "Image Link", Description, "Product Link", Price, PID')
           .or(smartphoneKeywords.map(k => `Description.ilike.%${k}%`).join(','))
           .not('Description', 'ilike', `%${excludedKeywords.join('%')}%`);
 
@@ -671,10 +667,11 @@ const Smartphones = () => {
         const processData = (data, source) => {
           data.forEach(item => {
             if (!smartphoneBrands.some(brand => item.Name.toLowerCase().includes(brand.toLowerCase()))) return;
-            const key = `${item.Name}|${item.Description}`;
+            const key = item.PID ? `${item.Name}|${item.PID}` : `${item.Name}|${item.Description}`;
             if (!productMap.has(key)) {
               productMap.set(key, {
                 Name: item.Name,
+                PID: item.PID,
                 Description: item.Description,
                 'Image Link': item['Image Link'],
                 sources: [],
@@ -732,8 +729,8 @@ const Smartphones = () => {
     setCurrentPage(1);
   };
 
-  const handleProductClick = (name, imageUrl, prices, sources, productLinks) => {
-    setPopupData({ name, imageUrl, prices, sources, productLinks });
+  const handleProductClick = (product) => {
+    setPopupData(product);
   };
 
   const handleClosePopup = () => {
@@ -945,7 +942,7 @@ const Smartphones = () => {
                         ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14v12"/></svg>')`
                         : option === 'amazon'
                           ? `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-8 16c-3.31 0-6-2.69-6-6s2.69-6 6-6 6 2.69 6 6-2.69 6-6 6z"/></svg>')`
-                          : `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 16H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V8h12v2z"/></svg>')`,
+                          : `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${theme.neonBlue}"><path d="M20 2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 16H6v-2h12v2zm0-4H6v-2h12v2zm0-4H6V8h12v2z"/></svg>')`,
                     backgroundSize: 'contain',
                     transition: 'transform 0.3s ease',
                   }}
@@ -1048,6 +1045,7 @@ const Smartphones = () => {
                     key={index}
                     name={product.Name}
                     imageUrl={product['Image Link']}
+                    pid={product.PID}
                     sources={product.sources}
                     productLinks={product.productLinks}
                     prices={product.prices}
@@ -1188,11 +1186,7 @@ const Smartphones = () => {
         <ProductDetailsPopup
           isOpen={!!popupData}
           onClose={handleClosePopup}
-          name={popupData.name}
-          imageUrl={popupData.imageUrl}
-          prices={popupData.prices}
-          sources={popupData.sources}
-          productLinks={popupData.productLinks}
+          product={popupData}
         />
       )}
     </div>

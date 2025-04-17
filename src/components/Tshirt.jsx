@@ -1,4 +1,4 @@
- import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import supabase from './supabase.js';
 import { useNavigate } from 'react-router-dom';
 
@@ -40,12 +40,12 @@ const debounce = (func, delay) => {
 };
 
 // Product Card Component
-const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductClick }) => {
+const ProductCard = ({ name, imageUrl, pid, prices, sources, productLinks, onProductClick }) => {
   const cardWidth = '200px';
   const imageHeight = '200px';
 
   const handleClick = () => {
-    onProductClick({ name, imageUrl, prices, sources, productLinks });
+    onProductClick({ name, imageUrl, pid, prices, sources, productLinks });
   };
 
   return (
@@ -105,6 +105,13 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
           overflow: 'hidden',
           textOverflow: 'ellipsis',
           whiteSpace: 'nowrap',
+          transition: 'color 0.3s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.color = themeTshirts.neonBlue;
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.color = themeTshirts.silverLining;
         }}
       >
         {name}
@@ -150,18 +157,18 @@ const ProductCard = ({ name, imageUrl, prices, sources, productLinks, onProductC
 };
 
 // Recommended Product Card for Popup
-const RecommendedProductCard = ({ name = 'T-Shirt' }) => {
+const RecommendedProductCard = ({ name = 'T-Shirt', imageUrl, price, productLink }) => {
   return (
     <div
       style={{
         background: themePopup.cardBackground,
         border: `1px solid ${themePopup.darkGray}`,
         borderRadius: '6px',
-        padding: '8px',
+        padding: '12px',
         boxShadow: `0 2px 6px ${themePopup.shadow}`,
         transition: 'all 0.2s ease-in-out',
-        width: getResponsiveValue('90px', '140px'),
-        height: 'auto',
+        width: getResponsiveValue('140px', '200px'),
+        height: getResponsiveValue('180px', '260px'),
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -181,43 +188,79 @@ const RecommendedProductCard = ({ name = 'T-Shirt' }) => {
       onTouchStart={(e) => (e.currentTarget.style.transform = 'scale(0.98)')}
       onTouchEnd={(e) => (e.currentTarget.style.transform = 'scale(1)')}
     >
-      <div
+      <a
+        href={productLink}
+        target="_blank"
+        rel="noopener noreferrer"
         style={{
           width: '100%',
-          height: getResponsiveValue('70px', '100px'),
-          background: '#555',
+          height: getResponsiveValue('120px', '180px'),
           borderRadius: '4px',
-          marginBottom: '6px',
+          overflow: 'hidden',
+          marginBottom: '12px',
+          display: 'block',
         }}
-      />
+      >
+        <img
+          src={imageUrl}
+          alt={name}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            borderRadius: '4px',
+          }}
+          onError={(e) => (e.target.src = 'https://via.placeholder.com/200?text=No+Image')}
+        />
+      </a>
       <div
         style={{
           color: themePopup.silver,
-          fontSize: '11px',
+          fontSize: getResponsiveValue('14px', '16px'),
           textAlign: 'center',
           overflow: 'hidden',
           whiteSpace: 'nowrap',
           textOverflow: 'ellipsis',
           width: '100%',
+          marginBottom: '8px',
+          transition: 'color 0.3s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.target.style.color = themeTshirts.neonBlue;
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.color = themePopup.silver;
         }}
       >
         {name}
+      </div>
+      <div
+        style={{
+          color: themeTshirts.neonBlue,
+          fontSize: getResponsiveValue('12px', '14px'),
+          textAlign: 'center',
+          fontWeight: '600',
+          width: '100%',
+        }}
+      >
+        {price ? `₹${price}.00` : 'Price not available'}
       </div>
     </div>
   );
 };
 
-// ProductDetails Popup Component
- // Product Details Popup Component (aligned with Sneakers/Smartphones/Jeans design)
+// Product Details Popup Component
 const ProductDetails = ({ product, onClose }) => {
   const [fetchedDescription, setFetchedDescription] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showFirstTwo, setShowFirstTwo] = useState(true);
+  const [recommendProducts, setRecommendProducts] = useState([]);
 
   const {
     name = 'Unknown Product',
     imageUrl = 'https://via.placeholder.com/300?text=No+Image',
+    pid,
     prices = [],
     sources = [],
     productLinks = [],
@@ -255,6 +298,14 @@ const ProductDetails = ({ product, onClose }) => {
               : 'No description available';
 
         setFetchedDescription(fetchedDesc);
+
+        // Fetch recommended products from external API
+        if (pid) {
+          const res = await fetch(`https://cosine-recommendation.onrender.com/recommend/${pid}?top_n=10`);
+          if (!res.ok) throw new Error('Failed to fetch recommendations');
+          const recs = await res.json();
+          setRecommendProducts(recs.recommendations || []);
+        }
       } catch (err) {
         console.error('Error fetching product details:', err);
         setError('Failed to fetch product details.');
@@ -264,16 +315,10 @@ const ProductDetails = ({ product, onClose }) => {
       }
     };
     fetchProductDetails();
-  }, [name, imageUrl]);
+  }, [name, imageUrl, pid]);
 
   const displayDescription = fetchedDescription;
-
-  const recommendedProducts = [
-    { name: "Men's Classic Cotton T-Shirt" },
-    { name: "Women's Graphic Tee" },
-    { name: "Unisex Oversized T-Shirt" },
-    { name: "Men's Sports T-Shirt" },
-  ];
+  const recommendedProducts = recommendProducts;
 
   const handleToggleProducts = () => {
     setShowFirstTwo(!showFirstTwo);
@@ -505,61 +550,13 @@ const ProductDetails = ({ product, onClose }) => {
           >
             {(showFirstTwo ? recommendedProducts.slice(0, 2) : recommendedProducts.slice(2, 4)).map(
               (product, index) => (
-                <div
+                <RecommendedProductCard
                   key={index}
-                  style={{
-                    background: '#252525',
-                    border: `1px solid ${themeTshirts.stealthGray}`,
-                    borderRadius: '8px',
-                    padding: '12px',
-                    width: getResponsiveValue('140px', '200px'),
-                    height: getResponsiveValue('180px', '260px'),
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    boxSizing: 'border-box',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.target.style.background = '#2F2F2F';
-                    e.target.style.borderColor = themeTshirts.neonBlue;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.background = '#252525';
-                    e.target.style.borderColor = themeTshirts.stealthGray;
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '100%',
-                      height: getResponsiveValue('120px', '180px'),
-                      background: '#333333',
-                      borderRadius: '6px',
-                      marginBottom: '12px',
-                    }}
-                  />
-                  <div
-                    style={{
-                      color: themeTshirts.silverLining,
-                      fontSize: getResponsiveValue('14px', '16px'),
-                      textAlign: 'center',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      width: '100%',
-                      transition: 'color 0.3s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.color = themeTshirts.neonBlue;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.color = themeTshirts.silverLining;
-                    }}
-                  >
-                    {product.name}
-                  </div>
-                </div>
+                  name={product.Name}
+                  imageUrl={product['Image Link']}
+                  price={product.Price}
+                  productLink={product['Product Link']}
+                />
               )
             )}
           </div>
@@ -607,6 +604,7 @@ const ProductDetails = ({ product, onClose }) => {
     </div>
   );
 };
+
 // Main Tshirts Component
 const Tshirts = () => {
   const navigate = useNavigate();
@@ -618,7 +616,7 @@ const Tshirts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 100; // 4 columns × 25 rows
+  const productsPerPage = 100;
   const [totalPages, setTotalPages] = useState(1);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
@@ -630,12 +628,12 @@ const Tshirts = () => {
 
         let amazonQuery = supabase
           .from('Amazon')
-          .select('Name, "Image Link", Description, "Product Link", Price')
+          .select('Name, "Image Link", Description, "Product Link", Price, PID')
           .ilike('Description', '%T-Shirt%');
 
         let flipkartQuery = supabase
           .from('Flipkart')
-          .select('Name, "Image Link", Description, "Product Link", Price')
+          .select('Name, "Image Link", Description, "Product Link", Price, PID')
           .ilike('Description', '%T-Shirt%');
 
         if (genderFilter === 'men') {
@@ -647,8 +645,12 @@ const Tshirts = () => {
         }
 
         if (searchQuery) {
-          amazonQuery = amazonQuery.ilike('Name', `%${searchQuery}%`).ilike('Description', `%${searchQuery}%`);
-          flipkartQuery = flipkartQuery.ilike('Name', `%${searchQuery}%`).ilike('Description', `%${searchQuery}%`);
+          amazonQuery = amazonQuery.or(
+            `Description.ilike.%${searchQuery}%,Name.ilike.%${searchQuery}%`
+          );
+          flipkartQuery = flipkartQuery.or(
+            `Description.ilike.%${searchQuery}%,Name.ilike.%${searchQuery}%`
+          );
         }
 
         let amazonData = [];
@@ -666,34 +668,48 @@ const Tshirts = () => {
           flipkartData = data || [];
         }
 
-        const productMap = new Map();
-
-        const processData = (data, source) => {
-          data.forEach((item) => {
-            const key = `${item.Name}|${item.Description}`;
-            if (!productMap.has(key)) {
-              productMap.set(key, {
-                Name: item.Name,
-                Description: item.Description,
-                'Image Link': item['Image Link'],
-                sources: [],
-                productLinks: [],
-                prices: [],
-              });
-            }
-            const product = productMap.get(key);
-            if (!product.sources.includes(source)) {
-              product.sources.push(source);
-              product.productLinks.push(item['Product Link']);
-              product.prices.push({ source, price: item.Price });
-            }
+        const amazonMap = new Map();
+        amazonData.forEach((item) => {
+          const key = item.PID ? `${item.Name}|${item.PID}` : `${item.Name}|${item.Description}`;
+          amazonMap.set(key, {
+            ...item,
+            source: 'Amazon',
+            productLink: item['Product Link'],
+            price: item.Price,
           });
-        };
+        });
+        const amazonProcessed = Array.from(amazonMap.values());
 
-        processData(amazonData, 'Amazon');
-        processData(flipkartData, 'Flipkart');
+        const flipkartProcessed = flipkartData.map((item) => ({
+          ...item,
+          source: 'Flipkart',
+          productLink: item['Product Link'],
+          price: item.Price,
+        }));
 
-        let allProducts = Array.from(productMap.values());
+        const combinedData = [...amazonProcessed, ...flipkartProcessed];
+        const productMap = combinedData.reduce((acc, product) => {
+          const key = product.PID ? `${product.Name}|${product.PID}` : `${product.Name}|${product.Description}`;
+          if (!acc[key]) {
+            acc[key] = {
+              Name: product.Name,
+              PID: product.PID,
+              Description: product.Description,
+              'Image Link': product['Image Link'],
+              sources: [],
+              productLinks: [],
+              prices: [],
+            };
+          }
+          if (!acc[key].sources.includes(product.source)) {
+            acc[key].sources.push(product.source);
+            acc[key].productLinks.push(product.productLink);
+            acc[key].prices.push({ source: product.source, price: product.price });
+          }
+          return acc;
+        }, {});
+
+        let allProducts = Object.values(productMap);
         allProducts = [...allProducts].sort((a, b) => (a.prices[0]?.price || 0) - (b.prices[0]?.price || 0));
         setTotalPages(Math.ceil(allProducts.length / productsPerPage));
 
@@ -1150,6 +1166,7 @@ const Tshirts = () => {
                     key={index}
                     name={product.Name}
                     imageUrl={product['Image Link']}
+                    pid={product.PID}
                     sources={product.sources}
                     productLinks={product.productLinks}
                     prices={product.prices}
